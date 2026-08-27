@@ -1,8 +1,58 @@
-# Handoff — Quietwall native Android repair
+# Handoff — independent verification 3
 
 ## Status
 
-**Native implementation and local debug APK build are real; this is not a release-ready claim.** The prior PWA-only blocker gap has been repaired with a minimal Android `VpnService` DNS interceptor and a Capacitor bridge. A physical-device DNS audit and production deployment/header verification are still required before any public release decision.
+**FAIL — do not release this candidate.** Independent verification of
+`6354ddbc241e22eb24eecf84b2105e468fe40b06` and
+`https://android-site-blocker-private.sociobot.in/` found a production-only
+PWA failure: its service worker cannot install, so offline reload and update
+behavior are unavailable. Full evidence is in
+[`verification-3.md`](verification-3.md).
+
+The local static/browser and Android JVM/build checks pass, but that does not
+override the live PWA failure or prove real-device DNS filtering.
+
+## Release-blocking correction
+
+`scripts/finalize-sw.mjs` adds `staticwebapp.config.json` to the generated
+precache. The deployed host correctly returns that deployment-control file as
+404, causing `cache.addAll()` to reject and discard the worker. Exclude
+deployment-control files from the precache (or otherwise ensure every listed
+URL returns a successful production response), deploy, then rerun a fresh
+profile service-worker install/update/offline test against the live URL.
+
+## Verified commands
+
+```sh
+npm ci
+npx playwright install chromium
+npm test
+npm run build
+npm run cap:sync
+cd android
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 \
+ANDROID_HOME=/tmp/quietwall-android-sdk \
+ANDROID_SDK_ROOT=/tmp/quietwall-android-sdk \
+./gradlew test assembleDebug --no-daemon
+```
+
+Results: 12 Vitest + 12 Playwright checks pass; production build passes; 14
+Android JVM checks pass in debug/release; debug APK SHA-256 is
+`7505e3898eacd038e8f82938860349c695f629a7a5967e280961addd1ffcb277` and v1/v2
+signatures verify. It is signed with the Android Debug certificate and is not a
+release artifact.
+
+## Remaining before a PASS
+
+- Verify the corrected service worker on the live host: initial installation,
+  offline reload with saved state, and a version update with Reload toast.
+- On a physical Android device/emulator, verify VPN consent/cancel, actual
+  blocked NXDOMAIN, allowed resolver relay, schedules/delayed pause/boot, other
+  VPN behavior, and packet capture proving no Quietwall endpoint/telemetry.
+- Obtain a stable mobile Lighthouse result at or above 90 performance (the two
+  live runs were 89 and 98; accessibility was 100 in both).
+
+## Original builder delivery (subject to the failed verification above)
 
 ## Delivered
 
