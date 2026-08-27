@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build && node scripts/finalize-sw.mjs",
-    "test": "npm run test:unit && npm run build && playwright test",
+    "test": "npm run test:unit && npm run test:precache && playwright test",
+    "test:precache": "npm run build && node --test scripts/verify-precache.test.mjs",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
     "test:watch": "vitest",

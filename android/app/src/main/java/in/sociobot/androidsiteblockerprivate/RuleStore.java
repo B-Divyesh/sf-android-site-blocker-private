@@ -62,6 +62,11 @@ public final class RuleStore {
     }
 
     public static boolean isBlockingActive(State state, long now) {
+        return isBlockingActiveAt(state, now);
+    }
+
+    /** Time-injectable policy boundary: kept deterministic for JVM verification. */
+    static boolean isBlockingActiveAt(State state, long now) {
         if (!state.userEnabled || state.rules.isEmpty()) return false;
         if (state.unlockAt > 0 && now >= state.unlockAt) return false;
         if (!state.scheduleEnabled) return true;
@@ -69,6 +74,7 @@ public final class RuleStore {
         int end = minutes(state.scheduleEnd);
         if (start < 0 || end < 0 || start == end) return true;
         Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(now);
         int current = calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE);
         return start < end ? current >= start && current < end : current >= start || current < end;
     }
