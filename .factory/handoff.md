@@ -1,5 +1,23 @@
 # Handoff — Quietwall v1 PWA
 
+## Independent verification status — FAIL (2026-08-27)
+
+This handoff's builder verification is superseded by
+[`verification.md`](verification.md). The candidate and live deployment are
+functionally aligned and the PWA/Capacitor-skeleton work order is otherwise
+substantially met, but release approval is **FAIL**: keyboard Tab navigation
+lands on the clipped, invisible `#import-file` input between the visible Import
+button and commitment controls. It has `tabIndex=0` and
+`clip: rect(0px, 0px, 0px, 0px)`, so it violates the mandatory visible-focus
+baseline. No product code was changed by the verifier.
+
+The independent final run was `npm test` (12 unit checks and 10 Playwright
+checks passed), followed by `npm run cap:sync` (passed). The complete evidence,
+including offline reload, import/export, delayed pause, update-flow, 390 px,
+axe, network, live parity, Android manifest, headers, bundle budgets, and
+environmental limits, is in `.factory/verification.md`. Do not mark this build
+PASS until the invisible focus stop is removed and re-verified.
+
 ## Delivered
 
 - Built a production Vite + vanilla TypeScript PWA under the Quietwall name with the required original pixel/demoscene control-room visual system.
