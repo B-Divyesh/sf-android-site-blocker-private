@@ -1,0 +1,47 @@
+name: Android debug APK
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      - uses: android-actions/setup-android@v3
+      - name: Install Android build platform
+        run: |
+          yes | sdkmanager --licenses > /dev/null
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - name: Install web dependencies
+        run: npm ci
+      - name: Build and synchronize the Capacitor app
+        run: npm run cap:sync
+      - name: Run deterministic native tests and assemble debug APK
+        working-directory: android
+        run: ./gradlew test assembleDebug --no-daemon
+      - name: Write APK SHA-256
+        run: sha256sum android/app/build/outputs/apk/debug/app-debug.apk | tee android/app/build/outputs/apk/debug/app-debug.apk.sha256
+      - name: Upload debug APK and checksum
+        uses: actions/upload-artifact@v4
+        with:
+          name: quietwall-debug-apk
+          if-no-files-found: error
+          path: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            android/app/build/outputs/apk/debug/app-debug.apk.sha256

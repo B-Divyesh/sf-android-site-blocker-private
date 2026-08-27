@@ -1,5 +1,6 @@
 import './styles.css';
 import { clampDelay, defaultState, normalizeDomain, parseImport, scheduleActive, type QuietwallState, type Rule } from './domain';
+import { isNativeAndroid, syncNativeVpn } from './native-vpn';
 import { loadState, saveState } from './storage';
 
 type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
@@ -67,7 +68,7 @@ function render(): void {
         <div class="engine ${isActive ? 'is-active' : ''}">
           <div class="engine-state">
             <span class="engine-icon" aria-hidden="true">${isActive ? '▣' : '□'}</span>
-            <div><p class="engine-label">${isActive ? 'RULES ARMED' : state.protectionEnabled ? 'OUTSIDE SCHEDULE' : 'RULES PAUSED'}</p><p>${activeRules} active ${activeRules === 1 ? 'domain' : 'domains'} · ${state.scheduleEnabled ? `${state.scheduleStart}–${state.scheduleEnd}` : 'all day'}</p></div>
+            <div><p class="engine-label">${isActive ? isNativeAndroid() ? 'DNS VPN ARMED' : 'RULES ARMED' : state.protectionEnabled ? 'OUTSIDE SCHEDULE' : 'RULES PAUSED'}</p><p>${activeRules} active ${activeRules === 1 ? 'domain' : 'domains'} · ${state.scheduleEnabled ? `${state.scheduleStart}–${state.scheduleEnd}` : 'all day'}</p></div>
           </div>
           <button class="power-button ${state.protectionEnabled ? 'on' : ''}" id="power-button" type="button" aria-pressed="${state.protectionEnabled}" ${pending ? 'disabled' : ''}>
             <span aria-hidden="true"></span>${pending ? `UNLOCKS IN ${formatRemaining(pending)}` : state.protectionEnabled ? 'PAUSE RULES' : 'ARM RULES'}
@@ -110,11 +111,11 @@ function render(): void {
       <section class="truth" aria-labelledby="truth-title">
         <div><p class="eyebrow">THREAT MODEL</p><h2 id="truth-title">Small surface. Honest limits.</h2></div>
         <div class="truth-grid">
-          <article><span>✓</span><h3>What it blocks</h3><p>Domains in apps and browsers when the future Android VPN service is active and DNS is visible.</p></article>
-          <article><span>!</span><h3>What can bypass it</h3><p>Another VPN, encrypted DNS configured by an app, or uninstalling Quietwall. This is commitment—not parental control.</p></article>
-          <article><span>↯</span><h3>Network promise</h3><p>The configurator makes no third-party requests. Rules are stored in IndexedDB and exports are made in your browser.</p></article>
+          <article><span>✓</span><h3>What it blocks</h3><p>On Android, the local VPN filters matching DNS names in apps and browsers when Android sends DNS through it.</p></article>
+          <article><span>!</span><h3>What can bypass it</h3><p>Android permits one VPN at a time. Another VPN, Private DNS, an app’s own resolver (including DoH/DoT), direct IP links, or uninstalling Quietwall can bypass it.</p></article>
+          <article><span>↯</span><h3>Network promise</h3><p>Quietwall sends no analytics or DNS logs anywhere. Allowed DNS requests go only to the resolver already supplied by your current network.</p></article>
         </div>
-        <div class="android-note"><span class="pixel-phone" aria-hidden="true"></span><div><strong>Android VPN engine is the next native build step.</strong><p>This work order delivers the installable, offline configurator and Capacitor shell. This web build does not claim to intercept device traffic.</p></div></div>
+        <div class="android-note"><span class="pixel-phone" aria-hidden="true"></span><div><strong>Android-only protection needs VPN consent.</strong><p>The APK asks Android to create a local DNS VPN when you arm rules. This website keeps the same offline list but cannot itself intercept device traffic.</p></div></div>
       </section>
     </main>
     <footer>
@@ -130,10 +131,18 @@ async function persist(successMessage?: string): Promise<void> {
   try {
     await saveState(state);
     storageError = false;
-    if (successMessage) { message = successMessage; messageKind = 'ok'; }
+    const native = await syncNativeVpn(state);
+    if (native?.consentDenied) {
+      state.protectionEnabled = false;
+      state.unlockAt = null;
+      state.unlockRequestedAt = null;
+      await saveState(state);
+      message = 'Android VPN permission was not granted, so rules remain paused.';
+      messageKind = 'error';
+    } else if (successMessage) { message = successMessage; messageKind = 'ok'; }
   } catch (error) {
     storageError = true;
-    message = error instanceof Error ? error.message : 'Changes could not be saved.';
+    message = error instanceof Error ? error.message : 'Changes could not be saved or sent to Android.';
     messageKind = 'error';
   }
   render();
@@ -219,6 +228,20 @@ async function boot(): Promise<void> {
   try { state = await loadState(); await navigator.storage?.persist?.(); }
   catch (error) { storageError = true; message = error instanceof Error ? error.message : 'Local storage is unavailable.'; messageKind = 'error'; }
   if (state.unlockAt && remainingUnlock() <= 0) { state.protectionEnabled = false; state.unlockAt = null; state.unlockRequestedAt = null; await saveState(state); }
+  if (state.protectionEnabled) {
+    try {
+      const native = await syncNativeVpn(state);
+      if (native?.consentDenied) {
+        state.protectionEnabled = false;
+        await saveState(state);
+        message = 'Android VPN permission was not granted, so rules remain paused.';
+        messageKind = 'error';
+      }
+    } catch (error) {
+      message = error instanceof Error ? `Rules are saved, but Android VPN setup failed: ${error.message}` : 'Rules are saved, but Android VPN setup failed.';
+      messageKind = 'error';
+    }
+  }
   render();
   window.addEventListener('online', () => { sessionStorage.removeItem('quietwall-offline'); updateNetworkLabel(); });
   window.addEventListener('offline', () => { sessionStorage.setItem('quietwall-offline', '1'); updateNetworkLabel(); });

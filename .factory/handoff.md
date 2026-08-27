@@ -1,79 +1,52 @@
-# Handoff — Quietwall v1 PWA
+# Handoff — Quietwall native Android repair
 
-## Independent verification 2 — FAIL (2026-08-27)
+## Status
 
-**Tested candidate:** `af8fcb743f6b70a5d3697dbdf76c27871ba252e3`
-**Tested URL:** <https://android-site-blocker-private.sociobot.in/>
-
-**FAIL.** The deployed PWA matches the candidate and passes its web
-functional, offline, responsive, keyboard, axe, console, and bundle checks.
-It is nevertheless not the product specified by the researched brief: the
-Android project has no `VpnService` DNS engine, no VPN declaration, and no APK
-implementing device-wide domain blocking. It is only a Capacitor/PWA block-list
-configurator. Do not release it as an Android website blocker.
-
-The exact independent evidence and severity-ranked defects are in
-[`verification-2.md`](verification-2.md). Required remediation is: build and
-device-audit the local VPN/DNS blocker, then correct the production immutable
-caching, CSP/anti-framing headers, and manifest MIME type before a fresh
-verification. Android Gradle assembly was attempted but this static-deploy
-verification image has no Java/JDK or Android SDK; `npm run cap:sync` does pass.
-
-## Repair verification status — locally PASS; deployment pending (2026-08-27)
-
-This repair removes the release-blocking invisible keyboard stop: the hidden
-`#import-file` now has `tabindex="-1"`, while the visible, named Import button
-continues to activate its native file chooser. A Playwright regression tabs
-through the real rendered order on desktop and 390×844 mobile, checks every
-focused stop has a rendered 3 px focus outline, asserts that `import-file` is
-absent, and verifies Enter on Import opens the chooser.
-
-`npm ci`, `npm test`, and `npm run cap:sync` all passed for this repair. The
-test run contains 12 unit/browser cases across desktop and mobile, including
-the existing offline and axe checks; the production build emits `dist/` and
-Capacitor copies it into the Android shell.
-
-The public URL was also checked at 2026-08-27 19:26 UTC. It responds normally
-with one `h1`, no serious/critical axe findings, and no console errors, but is
-still serving pre-repair `main-Dlmg_Ldc.js`: its `#import-file` has
-`tabIndex: 0`. This worker cannot publish static deployment changes. Deploy
-this commit's `dist/`, then re-check that production has `tabIndex: -1` before
-calling the release live PASS. [`verification.md`](verification.md) remains the
-record of the prior independent failure.
+**Native implementation and local debug APK build are real; this is not a release-ready claim.** The prior PWA-only blocker gap has been repaired with a minimal Android `VpnService` DNS interceptor and a Capacitor bridge. A physical-device DNS audit and production deployment/header verification are still required before any public release decision.
 
 ## Delivered
 
-- Built a production Vite + vanilla TypeScript PWA under the Quietwall name with the required original pixel/demoscene control-room visual system.
-- Implemented validated domain and wildcard rules, per-rule enable/disable, specific delete confirmation with undo, IndexedDB persistence, JSON import/export, all-day or overnight focus hours, and an optional 0–1,440 minute delayed pause.
-- Covered the empty, invalid input, storage error, offline, update-available, scheduled, paused, and active UI states. All controls are keyboard-operable with 44 px targets and visible focus.
-- Added a hand-written, versioned service worker that precaches the complete hashed build, uses same-origin cache-first assets and network-first navigation, removes old caches, and exposes an in-app update action.
-- Added an install manifest with normal and maskable icons, branded splash treatment, `/privacy/`, `/terms/`, offline fallback, robots and sitemap files, and no analytics, accounts, CDN assets, remote API, or third-party runtime code.
-- Added the Capacitor 7 Android project (`in.sociobot.androidsiteblockerprivate`), synchronized production web assets, generated original Android icons/splashes, disabled Android cloud backup, and left the configurator shell with no Android permissions.
-- Documented scope, usage, deployment, visual tokens, provenance, and limitations in `README.md` and `.factory/design.md`.
+- Added `QuietwallVpnService`, declared as Android's `VpnService` with explicit VPN consent, a low-priority foreground notification, `START_NOT_STICKY` lifecycle, and no analytics/telemetry code.
+- The service supplies local IPv4 (`10.99.0.2`) and IPv6 (`fd51:7177:616c:6c00::2`) DNS addresses to Android. It bounds-checks unfragmented UDP DNS packets, including IPv6 extension/fragment parsing, replies NXDOMAIN locally for a matching rule, and relays allowed queries only to resolvers advertised by the active non-VPN network. `VpnService.protect()` excludes that relay socket from the VPN loop.
+- Added native domain validation and matching. A bare `example.com` matches the apex and descendants; `*.example.com` matches descendants but not the apex. The Capacitor `QuietwallVpn` plugin syncs only enabled rule patterns plus schedule/unlock state from the existing PWA UI. It does not expose DNS activity to JavaScript.
+- The consent cancellation path disarms native and web state. A delayed pause is also scheduled natively, so it can stop the VPN after the WebView closes. Boot recovery runs only after `BOOT_COMPLETED` and only when the private native setting says the user left protection enabled; an expired delayed pause is disarmed instead.
+- Updated the preserved UI and legal copy to describe the real Android engine and the browser/PWA boundary honestly. The PWA remains an offline local configurator; it cannot itself filter traffic.
+- Added deterministic JVM tests for matching, malformed DNS input, IPv4/IPv6 UDP parsing, DNS NXDOMAIN construction, and response framing.
+- Added GitHub Actions at `.github/workflows/android-debug-apk.yml`: Java 21, `npm run cap:sync`, `./gradlew test assembleDebug`, SHA-256 creation, and APK/checksum upload. Android debug artifacts are debug-key signed by the Android toolchain (there is no production/release key in this repo); the workflow intentionally performs no release signing.
+- Added static production configuration in `public/staticwebapp.config.json` and `public/_headers`: immutable one-year caching for `/assets/*`, no-cache documents/service worker, restrictive CSP with `frame-ancestors 'none'`, `X-Frame-Options: DENY`, `nosniff`, Referrer/Permissions Policy, and `application/manifest+json` for `.webmanifest`.
 
-## Verification
+## Local verification (2026-08-27)
 
-- `npm test`: passes. This runs 12 Vitest unit checks, `npm run build`, then 12 Playwright checks across desktop Chromium and a 390×844 mobile viewport.
-- Playwright verified domain normalization, error handling, IndexedDB persistence after reload, offline app-shell reload with saved rules, privacy/terms routes, the repaired real Tab order and Import keyboard activation, and zero serious or critical axe violations. No console errors occurred in the smoke path.
-- `npm run build`: passes reproducibly and creates `dist/index.html`. Final JS is 16.51 kB uncompressed / 6.12 kB gzip for the main bundle (plus a 0.71 kB Vite preload helper); CSS is 13.07 kB / 3.75 kB gzip; hero WebP is 7.3 kB. All are well inside the 200/50/300 kB budgets.
-- Lighthouse mobile against the production preview: Performance **98**, Accessibility **100**, Best Practices **100**, SEO **100**; LCP **1,054 ms**, CLS **0**, total blocking time **168 ms**. Transfer attributed to JS: 7,522 bytes; CSS: 4,116 bytes.
-- `npx cap sync android`: passes and places the current production build at `android/app/src/main/assets/public/index.html`.
-- `npm audit`: 0 known vulnerabilities (including development dependencies).
-- Visual inspection completed at 1440 px and 390 px. Content remains readable, controls stack intentionally, and nothing clips horizontally.
+```sh
+npm ci
+npm test
+npm run cap:sync
+cd android
+ANDROID_HOME=/opt/quietwall-android-sdk ANDROID_SDK_ROOT=/opt/quietwall-android-sdk ./gradlew test assembleDebug --no-daemon
+```
 
-## Known gaps / honest deviation
+- `npm test`: **PASS** — 12 Vitest checks and 12 Playwright checks (desktop + 390 px), including IndexedDB persistence, offline reload, keyboard traversal, and axe serious/critical violations.
+- `npm run build`: **PASS**. Final main JS is 25.21 kB uncompressed / 9.35 kB gzip and CSS is 13.07 kB / 3.75 kB gzip, within the static budget. `dist/` contains the static header config and versioned PWA shell.
+- `./gradlew test assembleDebug`: **PASS** with JDK 21, Android SDK Platform 35, and Build Tools 35.0.0. The six Quietwall native test cases pass in both debug and release test variants (the generated Capacitor example test also passes).
+- Local artifact: `android/app/build/outputs/apk/debug/app-debug.apk`, 4,306,234 bytes, SHA-256 `c9dabd891d72b605a0181c8196d0401755c1ee7423426e8f4b91621f195bfb37`.
+- `apksigner verify --verbose` reports valid v1/v2 signatures with the generated **Android Debug** certificate. No release signing key was used or committed.
+- Static header JSON was parsed locally and contains both the manifest MIME mapping and `frame-ancestors 'none'` CSP directive. A deployed host must publish the generated `dist/` root, including `staticwebapp.config.json` (Azure Static Web Apps) or `_headers` (compatible host), for these headers to take effect.
 
-- This static work order intentionally stops at the PWA plus Capacitor shell, per orchestrator direction. A web page cannot intercept device DNS, and the Android project does **not** yet contain the native `VpnService` DNS engine. The UI says this directly and never claims that browser-configured rules currently block traffic. Therefore no APK is presented as a working blocker.
-- The next Android work order must implement and test the local DNS interceptor, wildcard matching in the service, VPN consent flow, foreground-service lifecycle/notification, app-to-native configuration bridge, boot recovery, IPv4/IPv6 handling, Chrome/DoH limitation guidance, and a packet-level zero-egress audit. It should then add only the Android declarations genuinely required by `VpnService`, build/sign the APK, publish its SHA-256, and run device accessibility/back-gesture tests.
-- The required `/opt/fleet/lib/gen-image.sh` command was attempted three times after the stated retry windows, but Azure returned `RateLimitReached` each time. The coherent fallback is an original hand-authored SVG pixel scene, optimized to a 7.3 kB WebP. The exact attempted prompt and provenance are recorded in `.factory/design.md` and `assets/src/quietwall-gate.json`.
-- Android Gradle/APK compilation was not run because this static-deploy worker does not expose an Android SDK, as anticipated by the attached Android contract. The generated Gradle project and synced web assets are ready for the later Android worker.
+## Important limitations / remaining verification
+
+- This is a DNS commitment tool, not parental control. Android permits one VPN at a time: another VPN replaces Quietwall. Android Private DNS, an app using its own resolver (including DoH/DoT), TCP-only DNS, direct IP connections, and uninstalling the app can bypass or fall outside this filter. These limitations are shown in the product and terms.
+- Only ordinary **UDP DNS** is intentionally handled. The engine does not claim to intercept encrypted or TCP DNS. A failed/absent network resolver causes allowed DNS to fail rather than fall back to a Quietwall service.
+- Quietwall stores filtering configuration locally but deliberately stores no query, response, domain-match, IP-address, counter, analytics, crash-report, or browsing-history record. Permitted DNS necessarily travels to the resolver selected by the current Wi-Fi/mobile network; it never travels to a Quietwall server.
+- No physical Android device/emulator was available for packet capture in this worker. Before release, verify on IPv4-only, IPv6-only, and dual-stack Android networks that the VPN consent screen, foreground notification, blocked NXDOMAIN, allowed resolver relay, schedule/unlock expiry, boot recovery, other-VPN conflict, and Private DNS/DoH warnings behave as documented. Perform a packet-level audit confirming no Quietwall endpoint is contacted.
+- The APK is a locally built debug artifact only, not a distributable release. CI uploads an equivalent debug artifact and checksum; production signing, artifact distribution, and static deployment remain factory actions.
 
 ## Run / deploy
 
 ```sh
 npm ci
 npm test
-npm run build
+npm run cap:sync
+cd android && ./gradlew test assembleDebug
 ```
 
-Deploy `dist/` as the static root. For the next native job, run `npm run cap:sync` before the Android Gradle build.
+Use JDK 21 and Android Platform 35 / Build Tools 35.0.0 for Gradle. Deploy the generated `dist/` directory as the static root without dropping `staticwebapp.config.json` or `_headers`. Do not present the static site alone as a working blocker; install the Android APK and accept Android VPN consent to enable filtering.
