@@ -28,6 +28,53 @@ test('has no serious accessibility violations', async ({ page }) => {
   expect(results.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''))).toEqual([]);
 });
 
+test('Tab order skips the hidden file picker and always shows focus', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+
+  const focusedStops: string[] = [];
+  for (let tabCount = 0; tabCount < 20; tabCount += 1) {
+    await page.keyboard.press('Tab');
+    const focused = await page.evaluate(() => {
+      const element = document.activeElement as HTMLElement | null;
+      if (!element) return null;
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return {
+        id: element.id || `${element.tagName.toLowerCase()}:${element.getAttribute('href') ?? ''}:${element.className}`,
+        visible: rect.width > 1 && rect.height > 1 && style.visibility !== 'hidden' && style.display !== 'none',
+        focusIndicator: style.outlineStyle !== 'none' && parseFloat(style.outlineWidth) >= 2
+      };
+    });
+
+    expect(focused).not.toBeNull();
+    if (focused!.id === 'body::') break;
+    expect(focused!.visible, `${focused!.id} must be visible when focused`).toBe(true);
+    expect(focused!.focusIndicator, `${focused!.id} must show a focus indicator`).toBe(true);
+    if (focusedStops.includes(focused!.id)) break;
+    focusedStops.push(focused!.id);
+  }
+
+  expect(focusedStops).toEqual([
+    'a:#main:skip-link',
+    'a:/:brand',
+    'power-button',
+    'domain',
+    'button::button primary',
+    'import-button',
+    'summary::',
+    'a:/:brand footer-brand',
+    'a:/privacy/:',
+    'a:/terms/:',
+    'a:https://github.com/B-Divyesh/sf-android-site-blocker-private:'
+  ]);
+  expect(focusedStops).not.toContain('import-file');
+
+  const picker = page.waitForEvent('filechooser');
+  await page.getByRole('button', { name: 'Import' }).press('Enter');
+  await expect(await picker).toBeTruthy();
+});
+
 test('app shell and saved state work offline', async ({ page, context }) => {
   await page.goto('/');
   await page.evaluate(() => navigator.serviceWorker.ready);

@@ -1,22 +1,26 @@
 # Handoff — Quietwall v1 PWA
 
-## Independent verification status — FAIL (2026-08-27)
+## Repair verification status — locally PASS; deployment pending (2026-08-27)
 
-This handoff's builder verification is superseded by
-[`verification.md`](verification.md). The candidate and live deployment are
-functionally aligned and the PWA/Capacitor-skeleton work order is otherwise
-substantially met, but release approval is **FAIL**: keyboard Tab navigation
-lands on the clipped, invisible `#import-file` input between the visible Import
-button and commitment controls. It has `tabIndex=0` and
-`clip: rect(0px, 0px, 0px, 0px)`, so it violates the mandatory visible-focus
-baseline. No product code was changed by the verifier.
+This repair removes the release-blocking invisible keyboard stop: the hidden
+`#import-file` now has `tabindex="-1"`, while the visible, named Import button
+continues to activate its native file chooser. A Playwright regression tabs
+through the real rendered order on desktop and 390×844 mobile, checks every
+focused stop has a rendered 3 px focus outline, asserts that `import-file` is
+absent, and verifies Enter on Import opens the chooser.
 
-The independent final run was `npm test` (12 unit checks and 10 Playwright
-checks passed), followed by `npm run cap:sync` (passed). The complete evidence,
-including offline reload, import/export, delayed pause, update-flow, 390 px,
-axe, network, live parity, Android manifest, headers, bundle budgets, and
-environmental limits, is in `.factory/verification.md`. Do not mark this build
-PASS until the invisible focus stop is removed and re-verified.
+`npm ci`, `npm test`, and `npm run cap:sync` all passed for this repair. The
+test run contains 12 unit/browser cases across desktop and mobile, including
+the existing offline and axe checks; the production build emits `dist/` and
+Capacitor copies it into the Android shell.
+
+The public URL was also checked at 2026-08-27 19:26 UTC. It responds normally
+with one `h1`, no serious/critical axe findings, and no console errors, but is
+still serving pre-repair `main-Dlmg_Ldc.js`: its `#import-file` has
+`tabIndex: 0`. This worker cannot publish static deployment changes. Deploy
+this commit's `dist/`, then re-check that production has `tabIndex: -1` before
+calling the release live PASS. [`verification.md`](verification.md) remains the
+record of the prior independent failure.
 
 ## Delivered
 
@@ -30,8 +34,8 @@ PASS until the invisible focus stop is removed and re-verified.
 
 ## Verification
 
-- `npm test`: passes. This runs 12 Vitest unit checks, `npm run build`, then 10 Playwright checks across desktop Chromium and a 390×844 mobile viewport.
-- Playwright verified domain normalization, error handling, IndexedDB persistence after reload, offline app-shell reload with saved rules, privacy/terms routes, and zero serious or critical axe violations. No console errors occurred in the smoke path.
+- `npm test`: passes. This runs 12 Vitest unit checks, `npm run build`, then 12 Playwright checks across desktop Chromium and a 390×844 mobile viewport.
+- Playwright verified domain normalization, error handling, IndexedDB persistence after reload, offline app-shell reload with saved rules, privacy/terms routes, the repaired real Tab order and Import keyboard activation, and zero serious or critical axe violations. No console errors occurred in the smoke path.
 - `npm run build`: passes reproducibly and creates `dist/index.html`. Final JS is 16.51 kB uncompressed / 6.12 kB gzip for the main bundle (plus a 0.71 kB Vite preload helper); CSS is 13.07 kB / 3.75 kB gzip; hero WebP is 7.3 kB. All are well inside the 200/50/300 kB budgets.
 - Lighthouse mobile against the production preview: Performance **98**, Accessibility **100**, Best Practices **100**, SEO **100**; LCP **1,054 ms**, CLS **0**, total blocking time **168 ms**. Transfer attributed to JS: 7,522 bytes; CSS: 4,116 bytes.
 - `npx cap sync android`: passes and places the current production build at `android/app/src/main/assets/public/index.html`.

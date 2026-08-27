@@ -85,7 +85,7 @@ function render(): void {
           </form>
           <div class="rule-toolbar">
             <p><strong>${state.rules.length}</strong> ${state.rules.length === 1 ? 'rule' : 'rules'}</p>
-            <div><button class="button ghost" type="button" id="import-button">Import</button><button class="button ghost" type="button" id="export-button" ${state.rules.length ? '' : 'disabled'}>Export</button><input class="visually-hidden" id="import-file" type="file" aria-label="Choose Quietwall export file" accept="application/json,.json" /></div>
+            <div><button class="button ghost" type="button" id="import-button">Import</button><button class="button ghost" type="button" id="export-button" ${state.rules.length ? '' : 'disabled'}>Export</button><input class="visually-hidden" id="import-file" type="file" tabindex="-1" aria-label="Choose Quietwall export file" accept="application/json,.json" /></div>
           </div>
           <ul class="rule-list" aria-label="Blocked domains">
             ${state.rules.length ? state.rules.map((rule) => `
