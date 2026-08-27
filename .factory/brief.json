@@ -1,0 +1,14 @@
+{
+  "slug": "android-site-blocker-private",
+  "title": "Android website blocker that never phones home",
+  "user": "Android users who want a permanent, hard-to-bypass block on specific sites without a focus-app subscription or an app that logs their browsing; job: block a domain list device-wide with no data collection.",
+  "smallest_useful_product": "Android app: local VpnService DNS interceptor with user-managed block list (wildcards), import/export list, optional unlock delay/timer, no permissions beyond VPN, no analytics.",
+  "artifact_class": "android",
+  "monetization": "free (open source); optional one-time support IAP",
+  "constraints": [
+    "VpnService conflicts with other VPNs",
+    "Encrypted DNS may bypass DNS interception",
+    "Uninstalling the app bypasses commitment features",
+    "No parental-control enforcement claims"
+  ]
+}
