@@ -1,0 +1,8 @@
+{
+  "asset": "quietwall-gate.svg",
+  "author": "Param Factory worker",
+  "method": "hand-authored SVG fallback after three Azure OpenAI factory-image requests returned RateLimitReached",
+  "date": "2026-08-27",
+  "license": "MIT",
+  "prompt_attempted": "A compact isometric pixel art scene of an Android-shaped handheld device beside a tiny local DNS gate, a luminous lime barrier stopping red pixel packets while aqua packets travel locally in a closed loop, dark near-black green control room, crisp 1990s demoscene raster art, limited palette #090D0C #B7F34A #6FE7D6 #FF6B6B #F2F5E9, no gradients, no text, no people, no brand marks, no watermark, no logos, clean silhouette, wide editorial composition"
+}

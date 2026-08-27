@@ -22,8 +22,8 @@ Spacing follows a 4/8 px grid: 4, 8, 12, 16, 24, 32, 48, 64, 96. Corners are cli
 
 ## Typography
 
-- Display and labels: `PixelSquare`, a small self-hosted, OFL-licensed pixel face subset (or a square system monospace fallback when unavailable). Used sparingly at 12–15 px with tracking.
-- Reading and controls: `Inter`, self-hosted WOFF2, with `system-ui` fallback. Body never drops below 16 px.
+- Display and labels: the device's square monospace stack (`SFMono-Regular`, Consolas, Liberation Mono). Used sparingly at 12–15 px with tracking. This avoids any font request and reinforces the local-console voice.
+- Reading and controls: the native `system-ui` sans stack. Body never drops below 16 px. No font files or third-party font calls are shipped.
 - Numeric status uses tabular figures. The scale is 12 / 14 / 17 / 22 / 32 / clamp(44–72) px.
 
 ## Interaction grammar
@@ -40,7 +40,7 @@ State changes use a 180 ms stepped fade/translate and the shield gate slides 220
 
 ## Asset plan and provenance
 
-- Hero: original generated pixel-art “offline DNS gate” scene, used as an explanatory diagram—not a generic background. Prompt: “A compact isometric pixel art scene of an Android-shaped handheld device beside a tiny local DNS gate, a luminous lime barrier stopping red pixel packets while aqua packets travel locally in a closed loop, dark near-black green control room, crisp 1990s demoscene raster art, limited palette #090D0C #B7F34A #6FE7D6 #FF6B6B #F2F5E9, no gradients, no text, no people, no brand marks, no watermark, no logos, clean silhouette, wide editorial composition.” Generated with Azure OpenAI `factory-image` on 2026-08-27. Original output and prompt sidecar live in `assets/src/`; WebP delivery asset lives in `public/assets/`.
+- Hero: original hand-authored pixel-art “offline DNS gate” scene, used as an explanatory diagram—not a generic background. The required Azure OpenAI generation command was attempted three times on 2026-08-27 with the prompt “A compact isometric pixel art scene of an Android-shaped handheld device beside a tiny local DNS gate, a luminous lime barrier stopping red pixel packets while aqua packets travel locally in a closed loop, dark near-black green control room, crisp 1990s demoscene raster art, limited palette #090D0C #B7F34A #6FE7D6 #FF6B6B #F2F5E9, no gradients, no text, no people, no brand marks, no watermark, no logos, clean silhouette, wide editorial composition,” but the factory endpoint returned `RateLimitReached` after its retry window. To avoid shipping an unreviewed or incoherent fallback, the worker authored the scene as crisp SVG and optimized it to WebP. Source and prompt sidecar live in `assets/src/`; delivery asset lives in `public/assets/`. MIT licensed with the repository.
 - Icons and UI glyphs: hand-authored inline SVG/pixel CSS, MIT with the repository.
 - Generated imagery is disclosed in the footer. No real people, brands, copyrighted characters, or implied screenshots.
 

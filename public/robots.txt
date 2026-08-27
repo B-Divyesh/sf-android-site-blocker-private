@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://android-site-blocker-private.sociobot.in/sitemap.xml

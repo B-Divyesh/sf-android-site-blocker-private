@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600" viewBox="0 0 900 600" role="img" aria-labelledby="title desc">
+  <title id="title">Quietwall local DNS gate</title><desc id="desc">A pixel-art phone sends packets through a local gate. Red packets stop while aqua packets stay in a closed loop.</desc>
+  <rect width="900" height="600" fill="#101715"/><path fill="#18221f" d="M0 480h900v120H0zM0 0h900v24H0z"/>
+  <g opacity=".28" fill="#6fe7d6"><path d="M24 72h8v8h-8zM56 72h64v8H56zM760 72h112v8H760zM24 104h144v8H24zM816 104h56v8h-56z"/><path d="M48 504h8v8h-8zM80 504h200v8H80zM648 520h176v8H648z"/></g>
+  <g shape-rendering="crispEdges">
+    <path fill="#090d0c" stroke="#f2f5e9" stroke-width="8" d="M106 120h228v360H106z"/><path fill="#18221f" d="M130 152h180v240H130z"/><path fill="#aebbb2" d="M182 132h76v8h-76z"/><path fill="#b7f34a" d="M182 416h76v24h-76z"/><path fill="#090d0c" d="M206 420h28v16h-28z"/>
+    <path fill="#6fe7d6" d="M162 212h116v12H162zM162 244h80v12h-80zM162 276h100v12H162z"/><path fill="#ff6b6b" d="M162 324h64v12h-64z"/>
+    <path fill="#6fe7d6" d="M334 244h100v12H334zM406 236h28v28h-28z"/><path fill="#090d0c" d="M414 244h12v12h-12z"/>
+    <path fill="#f2f5e9" d="M462 142h224v40H462zM438 182h272v232H438zM462 414h224v40H462z"/><path fill="#090d0c" d="M454 194h240v208H454z"/>
+    <path fill="#b7f34a" d="M486 218h56v160h-56zM606 218h56v160h-56zM542 274h64v48h-64z"/><path fill="#090d0c" d="M502 234h24v128h-24zM622 234h24v128h-24zM542 290h64v16h-64z"/>
+    <path fill="#6fe7d6" d="M710 244h94v12H710zM792 224h12v52h-12zM780 224h12v12h-12zM780 264h12v12h-12z"/>
+    <path fill="#ff6b6b" d="M350 344h112v12H350zM362 324h12v52h-12zM390 324h12v52h-12z"/><path fill="#ff6b6b" d="M414 316h16v16h-16zM438 316h16v16h-16zM414 368h16v16h-16zM438 368h16v16h-16z"/>
+    <path fill="#ffc857" d="M748 330h24v24h-24zM796 362h16v16h-16z"/>
+  </g>
+  <g font-family="monospace" font-weight="700" letter-spacing="3"><text x="106" y="96" fill="#aebbb2" font-size="16">DEVICE</text><text x="438" y="112" fill="#b7f34a" font-size="16">LOCAL GATE</text><text x="714" y="210" fill="#aebbb2" font-size="16">ALLOWED</text><text x="350" y="410" fill="#ff6b6b" font-size="16">BLOCKED</text></g>
+</svg>
