@@ -258,10 +258,17 @@ window.addEventListener('beforeinstallprompt', (event) => { event.preventDefault
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').then((registration) => {
-    if (registration.waiting) showUpdate(registration);
-    registration.addEventListener('updatefound', () => registration.installing?.addEventListener('statechange', () => {
+    const announceWaitingUpdate = () => {
       if (registration.waiting && navigator.serviceWorker.controller) showUpdate(registration);
-    }));
+    };
+    announceWaitingUpdate();
+    registration.addEventListener('updatefound', () => registration.installing?.addEventListener('statechange', announceWaitingUpdate));
+    // Browsers throttle automatic worker checks. A return to the installed app
+    // is a useful, low-frequency point to ask for an update and immediately
+    // surface one that is waiting.
+    window.addEventListener('focus', () => {
+      void registration.update().then(announceWaitingUpdate).catch(() => { /* Keep the app usable offline. */ });
+    });
   }).catch(() => { /* App remains fully usable without install support. */ });
 }
 
