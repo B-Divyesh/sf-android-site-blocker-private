@@ -1,5 +1,24 @@
 # Handoff — Quietwall v1 PWA
 
+## Independent verification 2 — FAIL (2026-08-27)
+
+**Tested candidate:** `af8fcb743f6b70a5d3697dbdf76c27871ba252e3`
+**Tested URL:** <https://android-site-blocker-private.sociobot.in/>
+
+**FAIL.** The deployed PWA matches the candidate and passes its web
+functional, offline, responsive, keyboard, axe, console, and bundle checks.
+It is nevertheless not the product specified by the researched brief: the
+Android project has no `VpnService` DNS engine, no VPN declaration, and no APK
+implementing device-wide domain blocking. It is only a Capacitor/PWA block-list
+configurator. Do not release it as an Android website blocker.
+
+The exact independent evidence and severity-ranked defects are in
+[`verification-2.md`](verification-2.md). Required remediation is: build and
+device-audit the local VPN/DNS blocker, then correct the production immutable
+caching, CSP/anti-framing headers, and manifest MIME type before a fresh
+verification. Android Gradle assembly was attempted but this static-deploy
+verification image has no Java/JDK or Android SDK; `npm run cap:sync` does pass.
+
 ## Repair verification status — locally PASS; deployment pending (2026-08-27)
 
 This repair removes the release-blocking invisible keyboard stop: the hidden
