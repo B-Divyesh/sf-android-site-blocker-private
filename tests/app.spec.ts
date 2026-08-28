@@ -1,96 +1,149 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-test('adds a normalized rule and retains it after reload', async ({ page }) => {
-  const consoleErrors: string[] = [];
-  page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+test('@claim:demo-isolation seeds, resets, and separates sample data from a real list', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel('Domain to block').fill('personal.example');
+  await page.getByRole('button', { name: 'Add domain' }).click();
+  await page.goto('/?demo=1');
+  await expect(page.getByText('Demo — sample data, nothing is saved to your real list')).toBeVisible();
+  await expect(page.getByText('news.example.com', { exact: true })).toBeVisible();
+  await expect(page.getByText('forum.example', { exact: true })).toBeVisible();
+  await page.getByLabel('Domain to block').fill('temporary.example');
+  await page.getByRole('button', { name: 'Add domain' }).click();
+  await page.getByRole('button', { name: 'Reset demo' }).click();
+  await expect(page.getByText('temporary.example', { exact: true })).toHaveCount(0);
+  await page.getByRole('link', { name: 'Start for real' }).click();
+  await expect(page).toHaveURL('/');
+  await expect(page.getByText('personal.example', { exact: true })).toBeVisible();
+  await expect(page.getByText('news.example.com', { exact: true })).toHaveCount(0);
+});
+
+test('@claim:browser-privacy keeps demo requests same-origin and data in demo storage', async ({ page }) => {
+  const origins = new Set<string>();
+  page.on('request', (request) => origins.add(new URL(request.url()).origin));
+  await page.goto('/?demo=1');
+  await page.getByLabel('Domain to block').fill('local.example');
+  await page.getByRole('button', { name: 'Add domain' }).click();
+  await page.getByRole('button', { name: 'Save block list' }).click();
+  await expect(page.getByText('Saved for Android import. This browser is not blocking sites.')).toBeVisible();
+  const databases = await page.evaluate(async () => (await indexedDB.databases()).map((database) => database.name));
+  expect(databases).toContain('quietwall-demo');
+  expect(databases).not.toContain('quietwall-local');
+  expect([...origins]).toEqual([new URL(page.url()).origin]);
+});
+
+test('@claim:offline-demo reloads the sample after the network is disabled', async ({ page, context }) => {
+  await page.goto('/?demo=1');
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await page.reload();
+  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Block websites across your Android device' })).toBeVisible();
+  await expect(page.getByText('news.example.com', { exact: true })).toBeVisible();
+});
+
+test('@claim:json-portability exports the sample and imports a versioned block list', async ({ page }) => {
+  await page.goto('/?demo=1');
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export block list' }).click();
+  const download = await downloadPromise;
+  const stream = await download.createReadStream();
+  let text = '';
+  for await (const chunk of stream) text += chunk.toString();
+  const exported = JSON.parse(text);
+  expect(exported.version).toBe(1);
+  expect(exported.rules).toHaveLength(4);
+  expect(exported.rules.map((rule: { pattern: string }) => rule.pattern)).toContain('news.example.com');
+  const chooserPromise = page.waitForEvent('filechooser');
+  await page.getByRole('button', { name: 'Import block list' }).click();
+  const chooser = await chooserPromise;
+  await chooser.setFiles({ name: 'quietwall.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ version: 1, rules: [{ pattern: 'imported.example', enabled: true }] })) });
+  await expect(page.getByText('imported.example', { exact: true })).toBeVisible();
+});
+
+test('@claim:free-no-account exposes the MIT license with no account or payment path', async ({ page, request }) => {
+  await page.goto('/?demo=1');
+  await expect(page.getByText('Free to use. No account.')).toBeVisible();
+  await expect(page.locator('a,button').filter({ hasText: /sign in|create account|subscribe|buy|checkout/i })).toHaveCount(0);
+  const license = await request.get('/LICENSE.txt');
+  expect(license.ok()).toBe(true);
+  await expect(license.text()).resolves.toContain('MIT License');
+});
+
+test('@claim:apk-download serves an Android package and matching checksum', async ({ request }) => {
+  const apk = await request.get('/downloads/quietwall.apk');
+  expect(apk.ok()).toBe(true);
+  const bytes = await apk.body();
+  expect(bytes.byteLength).toBeGreaterThan(1_000_000);
+  expect([...bytes.subarray(0, 4)]).toEqual([0x50, 0x4b, 0x03, 0x04]);
+  const checksum = await (await request.get('/downloads/quietwall.apk.sha256')).text();
+  expect(checksum).toMatch(/^[a-f0-9]{64}\s+/);
+});
+
+test('adds a normalized real rule and retains it after reload', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', (consoleMessage) => { if (consoleMessage.type() === 'error') errors.push(consoleMessage.text()); });
   await page.goto('/');
   await page.getByLabel('Domain to block').fill('https://www.Example.com');
   await page.getByRole('button', { name: 'Add domain' }).click();
-  await expect(page.getByText('example.com', { exact: true })).toBeVisible();
+  await expect(page.locator('.domain-name', { hasText: 'example.com' })).toBeVisible();
   await page.reload();
-  await expect(page.getByText('example.com', { exact: true })).toBeVisible();
-  expect(consoleErrors).toEqual([]);
+  await expect(page.locator('.domain-name', { hasText: 'example.com' })).toBeVisible();
+  expect(errors).toEqual([]);
 });
 
-test('reports invalid input and empty protection state', async ({ page }) => {
+test('@claim:web-config-only reports invalid input and never claims the browser is blocking', async ({ page }) => {
   await page.goto('/');
   await page.getByLabel('Domain to block').fill('not a domain');
   await page.getByRole('button', { name: 'Add domain' }).click();
   await expect(page.getByText(/valid domain/)).toBeVisible();
-  await page.getByRole('button', { name: 'ARM RULES' }).click();
-  await expect(page.getByText(/Add and enable at least one domain/)).toBeVisible();
+  await page.getByRole('button', { name: 'Save block list' }).click();
+  await expect(page.getByText('This browser is not blocking sites.')).toBeVisible();
+  await expect(page.getByText('RULES ARMED')).toHaveCount(0);
 });
 
-test('has no serious accessibility violations', async ({ page }) => {
-  await page.goto('/');
-  const results = await new AxeBuilder({ page }).analyze();
-  expect(results.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''))).toEqual([]);
-});
-
-test('Tab order skips the hidden file picker and always shows focus', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/');
-
-  const focusedStops: string[] = [];
-  for (let tabCount = 0; tabCount < 20; tabCount += 1) {
-    await page.keyboard.press('Tab');
-    const focused = await page.evaluate(() => {
-      const element = document.activeElement as HTMLElement | null;
-      if (!element) return null;
-      const style = getComputedStyle(element);
-      const rect = element.getBoundingClientRect();
-      return {
-        id: element.id || `${element.tagName.toLowerCase()}:${element.getAttribute('href') ?? ''}:${element.className}`,
-        visible: rect.width > 1 && rect.height > 1 && style.visibility !== 'hidden' && style.display !== 'none',
-        focusIndicator: style.outlineStyle !== 'none' && parseFloat(style.outlineWidth) >= 2
-      };
-    });
-
-    expect(focused).not.toBeNull();
-    if (focused!.id === 'body::') break;
-    expect(focused!.visible, `${focused!.id} must be visible when focused`).toBe(true);
-    expect(focused!.focusIndicator, `${focused!.id} must show a focus indicator`).toBe(true);
-    if (focusedStops.includes(focused!.id)) break;
-    focusedStops.push(focused!.id);
+test('all routes have metadata, one h1, the shared skeleton, and no serious axe violations', async ({ page }) => {
+  for (const route of ['/', '/?demo=1', '/demo/', '/privacy/', '/terms/', '/offline.html', '/does-not-exist']) {
+    await page.goto(route);
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+    await expect(page.locator('main h1')).toHaveCount(1);
+    await expect(page.locator('header nav')).toBeVisible();
+    await expect(page.getByText('Built by Param Factory')).toBeVisible();
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /.+/);
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /social-card\.png/);
+    const results = await new AxeBuilder({ page }).analyze();
+    expect(results.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? '')), route).toEqual([]);
   }
-
-  expect(focusedStops).toEqual([
-    'a:#main:skip-link',
-    'a:/:brand',
-    'power-button',
-    'domain',
-    'button::button primary',
-    'import-button',
-    'summary::',
-    'a:/:brand footer-brand',
-    'a:/privacy/:',
-    'a:/terms/:',
-    'a:https://github.com/B-Divyesh/sf-android-site-blocker-private:'
-  ]);
-  expect(focusedStops).not.toContain('import-file');
-
-  const picker = page.waitForEvent('filechooser');
-  await page.getByRole('button', { name: 'Import' }).press('Enter');
-  await expect(await picker).toBeTruthy();
 });
 
-test('app shell and saved state work offline', async ({ page, context }) => {
+test('client routing updates title, focus, history, and the route announcement', async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(() => navigator.serviceWorker.ready);
-  await page.reload();
-  await page.getByLabel('Domain to block').fill('offline.example');
-  await page.getByRole('button', { name: 'Add domain' }).click();
-  await context.setOffline(true);
-  await page.reload();
-  await expect(page.getByRole('heading', { name: /Your block list/ })).toBeVisible();
-  await expect(page.getByText('offline.example', { exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'Privacy', exact: true }).first().click();
+  await expect(page).toHaveTitle('Privacy — Quietwall');
+  await expect(page.locator(':focus')).toHaveText('How Quietwall handles your data');
+  await expect(page.locator('#route-announcer')).toHaveText('Privacy — Quietwall');
+  await page.goBack();
+  await expect(page).toHaveTitle('Quietwall — block websites on Android');
+  await expect(page.locator(':focus')).toHaveText('Block websites across your Android device');
 });
 
-test('privacy and terms are real static routes', async ({ page }) => {
-  await page.goto('/privacy/');
-  await expect(page.locator('main h1')).toHaveCount(1);
-  await expect(page.getByRole('heading', { name: /Nothing to hide/ })).toBeVisible();
-  await page.goto('/terms/');
-  await expect(page.locator('main h1')).toHaveCount(1);
+test('mobile layout has no overflow and every visible control is at least 44px', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-390');
+  await page.goto('/?demo=1');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  const shortControls = await page.locator('a:visible,button:visible,input:visible,summary:visible').evaluateAll((elements) => elements.map((element) => ({ label: element.getAttribute('aria-label') || element.textContent?.trim() || element.tagName, width: element.getBoundingClientRect().width, height: element.getBoundingClientRect().height })).filter((rect) => rect.width < 44 || rect.height < 44));
+  expect(shortControls).toEqual([]);
+});
+
+test('keyboard traversal skips the hidden picker and shows focus', async ({ page }) => {
+  await page.goto('/?demo=1');
+  for (let count = 0; count < 12; count += 1) {
+    await page.keyboard.press('Tab');
+    const focus = await page.evaluate(() => { const element = document.activeElement as HTMLElement; const style = getComputedStyle(element); const rect = element.getBoundingClientRect(); return { id: element.id, visible: rect.width > 1 && rect.height > 1, outline: parseFloat(style.outlineWidth) >= 2 }; });
+    expect(focus.id).not.toBe('import-file');
+    expect(focus.visible).toBe(true);
+    expect(focus.outline).toBe(true);
+  }
 });

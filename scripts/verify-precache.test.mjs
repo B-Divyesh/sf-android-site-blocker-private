@@ -25,7 +25,7 @@ test('generated service-worker precache is exactly the deployable application sh
     .map((file) => `/${relative(root, file).split(sep).join('/')}`)
     .filter((path) => path.startsWith('/assets/') || path === '/manifest.webmanifest' || path === '/offline.html')
     .sort();
-  const expected = ['/', '/privacy/', '/terms/', ...emittedAssets];
+  const expected = ['/', '/demo/', '/privacy/', '/terms/', '/404.html', ...emittedAssets];
 
   assert.deepEqual(actual, expected);
   assert.equal(actual.includes('/staticwebapp.config.json'), false);

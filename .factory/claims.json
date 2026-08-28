@@ -1,0 +1,107 @@
+[
+  {
+    "id": "demo-isolation",
+    "claim": "The sample demo uses separate storage and reset does not change the real block list.",
+    "where": "demo banner, README",
+    "test": "npm run test:e2e -- --project=desktop --grep @claim:demo-isolation",
+    "sandbox": "fresh browser context; seed real list, enter ?demo=1, edit and reset, then verify real list"
+  },
+  {
+    "id": "browser-privacy",
+    "claim": "The browser block list stays on the device and demo traffic is same-origin only.",
+    "where": "landing facts, privacy, README",
+    "test": "npm run test:e2e -- --project=desktop --grep @claim:browser-privacy",
+    "sandbox": "fresh ?demo=1 context; record all requests and inspect IndexedDB database names"
+  },
+  {
+    "id": "offline-demo",
+    "claim": "Quietwall works offline after the first visit.",
+    "where": "landing facts, README",
+    "test": "npm run test:e2e -- --project=desktop --grep @claim:offline-demo",
+    "sandbox": "fresh ?demo=1 context; install service worker, disable network, reload sample"
+  },
+  {
+    "id": "json-portability",
+    "claim": "Quietwall imports and exports a versioned JSON block list.",
+    "where": "configurator, privacy, README",
+    "test": "npm run test:e2e -- --project=desktop --grep @claim:json-portability",
+    "sandbox": "fresh ?demo=1 context; validate downloaded JSON then import a fixture"
+  },
+  {
+    "id": "free-no-account",
+    "claim": "Quietwall is free MIT-licensed software with no account or subscription.",
+    "where": "first screen, terms, README",
+    "test": "npm run test:e2e -- --project=desktop --grep @claim:free-no-account",
+    "sandbox": "fresh ?demo=1 context; assert no auth/payment path and fetch shipped MIT license"
+  },
+  {
+    "id": "apk-download",
+    "claim": "The website provides a public Android APK download and checksum.",
+    "where": "first-screen action, README",
+    "test": "npm run test:e2e -- --project=desktop --grep @claim:apk-download",
+    "sandbox": "fresh request context; assert APK ZIP signature, size, and checksum response"
+  },
+  {
+    "id": "apk-signature",
+    "claim": "The published preview APK is signed and its SHA-256 matches the published checksum.",
+    "where": "first-screen action, README",
+    "test": "node --test --test-name-pattern=@claim:apk-signature scripts/native-claims.test.mjs",
+    "sandbox": "repository artifact; inspect APK certificate entry and calculate SHA-256"
+  },
+  {
+    "id": "domain-matching",
+    "claim": "Bare domains include subdomains; explicit wildcards exclude the apex.",
+    "where": "domain field help, README",
+    "test": "npm run test:unit -- -t @claim:domain-matching",
+    "sandbox": "deterministic matcher cases for apex, nested subdomain, wildcard, and lookalike"
+  },
+  {
+    "id": "focus-hours",
+    "claim": "Focus hours support daytime, overnight, and all-day ranges.",
+    "where": "focus controls, README",
+    "test": "npm run test:unit -- -t @claim:focus-hours",
+    "sandbox": "fake dates before, inside, and after overnight and equal-time ranges"
+  },
+  {
+    "id": "pause-delay",
+    "claim": "The Android app keeps filtering active until the configured pause delay ends.",
+    "where": "focus controls, README",
+    "test": "node --test --test-name-pattern=@claim:pause-delay scripts/native-claims.test.mjs",
+    "sandbox": "inspect tested time boundary and Android alarm scheduling source"
+  },
+  {
+    "id": "web-config-only",
+    "claim": "The website saves and exports a block list but does not block traffic.",
+    "where": "configurator status, limits, terms, README",
+    "test": "npm run test:e2e -- --project=desktop --grep @claim:web-config-only",
+    "sandbox": "fresh real browser context; save empty list and assert truthful status and absence of armed state"
+  },
+  {
+    "id": "android-dns-filter",
+    "claim": "After VPN consent, the Android app returns a local not-found response for matching standard DNS requests.",
+    "where": "headline, walkthrough, limits, README",
+    "test": "node --test --test-name-pattern=@claim:android-dns-filter scripts/native-claims.test.mjs",
+    "sandbox": "inspect native VPN, consent, matcher, packet tests, and the published APK classes"
+  },
+  {
+    "id": "native-privacy",
+    "claim": "The Android app has no analytics client, remote API, or browsing-log store.",
+    "where": "privacy, README",
+    "test": "node --test --test-name-pattern=@claim:native-privacy scripts/native-claims.test.mjs",
+    "sandbox": "scan all native source and verify private settings storage"
+  },
+  {
+    "id": "network-resolver",
+    "claim": "Allowed DNS requests go to the active network resolver outside the VPN loop.",
+    "where": "limits, privacy, README",
+    "test": "node --test --test-name-pattern=@claim:network-resolver scripts/native-claims.test.mjs",
+    "sandbox": "inspect resolver discovery, protected socket use, destination port, and absence of hard-coded resolvers"
+  },
+  {
+    "id": "filter-boundary",
+    "claim": "Quietwall filters standard UDP DNS only and does not provide device-admin enforcement.",
+    "where": "limits, terms, README",
+    "test": "node --test --test-name-pattern=@claim:filter-boundary scripts/native-claims.test.mjs",
+    "sandbox": "inspect packet boundary and Android manifest permissions"
+  }
+]

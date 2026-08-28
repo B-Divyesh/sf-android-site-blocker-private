@@ -42,6 +42,8 @@ State changes use a 180 ms stepped fade/translate and the shield gate slides 220
 
 - Hero: original hand-authored pixel-art “offline DNS gate” scene, used as an explanatory diagram—not a generic background. The required Azure OpenAI generation command was attempted three times on 2026-08-27 with the prompt “A compact isometric pixel art scene of an Android-shaped handheld device beside a tiny local DNS gate, a luminous lime barrier stopping red pixel packets while aqua packets travel locally in a closed loop, dark near-black green control room, crisp 1990s demoscene raster art, limited palette #090D0C #B7F34A #6FE7D6 #FF6B6B #F2F5E9, no gradients, no text, no people, no brand marks, no watermark, no logos, clean silhouette, wide editorial composition,” but the factory endpoint returned `RateLimitReached` after its retry window. To avoid shipping an unreviewed or incoherent fallback, the worker authored the scene as crisp SVG and optimized it to WebP. Source and prompt sidecar live in `assets/src/`; delivery asset lives in `public/assets/`. MIT licensed with the repository.
 - Icons and UI glyphs: hand-authored inline SVG/pixel CSS, MIT with the repository.
+- Walkthrough: three hand-authored SVG Android frames (`walkthrough-install.svg`, `walkthrough-add.svg`, and `walkthrough-start.svg`) added on 2026-08-28. They reuse the documented pixel grid and palette and contain no borrowed marks.
+- Social preview: `social-card.png`, composed locally on 2026-08-28 from the original Quietwall gate art and self-rendered text. It is 1200 × 630 and MIT licensed with the repository.
 - Generated imagery is disclosed in the footer. No real people, brands, copyrighted characters, or implied screenshots.
 
 ## Responsive intent

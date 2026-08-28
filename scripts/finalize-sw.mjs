@@ -34,8 +34,8 @@ const swPath = join(root, 'sw.js');
 const source = await readFile(swPath, 'utf8');
 const version = createHash('sha256').update(JSON.stringify(assets)).digest('hex').slice(0, 10);
 const next = source.replace("const CACHE = 'quietwall-shell-v1';", `const CACHE = 'quietwall-shell-${version}';`).replace(
-  "const SHELL = ['/', '/offline.html', '/privacy/', '/terms/', '/manifest.webmanifest', '/assets/icon.svg', '/assets/quietwall-gate.webp'];",
-  `const SHELL = ${JSON.stringify(['/', '/privacy/', '/terms/', ...assets])};`
+  "const SHELL = ['/', '/demo/', '/offline.html', '/privacy/', '/terms/', '/404.html', '/manifest.webmanifest', '/assets/icon.svg', '/assets/quietwall-gate.webp'];",
+  `const SHELL = ${JSON.stringify(['/', '/demo/', '/privacy/', '/terms/', '/404.html', ...assets])};`
 );
 if (source === next) throw new Error('Service worker shell marker was not found.');
 await writeFile(swPath, next);

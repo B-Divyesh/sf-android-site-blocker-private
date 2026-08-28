@@ -107,6 +107,16 @@ export function scheduleActive(state: QuietwallState, date = new Date()): boolea
   return start < end ? now >= start && now < end : now >= start || now < end;
 }
 
+export function domainMatches(hostname: string, pattern: string): boolean {
+  const host = hostname.toLowerCase().replace(/\.$/, '');
+  const normalized = normalizeDomain(pattern);
+  if (normalized.startsWith('*.')) {
+    const suffix = normalized.slice(2);
+    return host.length > suffix.length + 1 && host.endsWith(`.${suffix}`);
+  }
+  return host === normalized || host.endsWith(`.${normalized}`);
+}
+
 function validTime(value: unknown): value is string {
   return typeof value === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
 }

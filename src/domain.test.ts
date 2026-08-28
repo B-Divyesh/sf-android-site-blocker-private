@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defaultState, normalizeDomain, parseImport, scheduleActive } from './domain';
+import { defaultState, domainMatches, normalizeDomain, parseImport, scheduleActive } from './domain';
 
 describe('normalizeDomain', () => {
   it('normalizes common URL input', () => expect(normalizeDomain('https://www.Example.com')).toBe('example.com'));
@@ -17,13 +17,23 @@ describe('imports', () => {
 });
 
 describe('focus hours', () => {
-  it('handles an overnight schedule', () => {
+  it('@claim:focus-hours handles daytime, overnight, and all-day schedules', () => {
     const state = { ...defaultState(), scheduleEnabled: true, scheduleStart: '22:00', scheduleEnd: '07:00' };
     expect(scheduleActive(state, new Date(2026, 1, 1, 23, 0))).toBe(true);
+    expect(scheduleActive(state, new Date(2026, 1, 1, 6, 59))).toBe(true);
+    expect(scheduleActive(state, new Date(2026, 1, 1, 7, 0))).toBe(false);
     expect(scheduleActive(state, new Date(2026, 1, 1, 12, 0))).toBe(false);
+    const allDay = { ...state, scheduleStart: '08:00', scheduleEnd: '08:00' };
+    expect(scheduleActive(allDay, new Date(2026, 1, 1, 12, 0))).toBe(true);
   });
-  it('treats equal times as all day', () => {
-    const state = { ...defaultState(), scheduleEnabled: true, scheduleStart: '08:00', scheduleEnd: '08:00' };
-    expect(scheduleActive(state, new Date(2026, 1, 1, 12, 0))).toBe(true);
+});
+
+describe('block-list matching', () => {
+  it('@claim:domain-matching applies bare and wildcard entries as described', () => {
+    expect(domainMatches('example.com', 'example.com')).toBe(true);
+    expect(domainMatches('deep.news.example.com', 'example.com')).toBe(true);
+    expect(domainMatches('news.example.com', '*.example.com')).toBe(true);
+    expect(domainMatches('example.com', '*.example.com')).toBe(false);
+    expect(domainMatches('notexample.com', 'example.com')).toBe(false);
   });
 });

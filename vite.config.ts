@@ -9,7 +9,9 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         privacy: resolve(__dirname, 'privacy/index.html'),
         terms: resolve(__dirname, 'terms/index.html'),
-        offline: resolve(__dirname, 'offline.html')
+        demo: resolve(__dirname, 'demo/index.html'),
+        offline: resolve(__dirname, 'offline.html'),
+        notFound: resolve(__dirname, '404.html')
       }
     }
   }
