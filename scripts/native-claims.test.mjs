@@ -29,6 +29,7 @@ test('@claim:apk-signature verifies the published package signature and checksum
   const entries = execFileSync('unzip', ['-Z1', apkPath], { encoding: 'utf8' });
   assert.match(entries, /META-INF\/CERT\.RSA/);
   assert.match(entries, /AndroidManifest\.xml/);
+  assert.doesNotMatch(entries, /assets\/public\/downloads\/quietwall\.apk/);
   const certificate = execFileSync('sh', ['-c', `unzip -p '${apkPath}' META-INF/CERT.RSA | openssl pkcs7 -inform DER -print_certs -noout`], { encoding: 'utf8' });
   assert.match(certificate, /CN\s*=\s*Android Debug/);
   const expected = (await readFile(new URL('../public/downloads/quietwall.apk.sha256', import.meta.url), 'utf8')).split(/\s+/)[0];
