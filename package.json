@@ -14,7 +14,7 @@
     "test:e2e": "playwright test",
     "test:watch": "vitest",
     "preview": "vite preview",
-    "cap:sync": "npm run build && cap sync android"
+    "cap:sync": "npm run build && node scripts/prepare-capacitor.mjs && cap sync android"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.3",

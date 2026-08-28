@@ -50,6 +50,8 @@ Quietwall filters standard UDP DNS only. Encrypted DNS, direct IP traffic, anoth
 
 The website provides the signed preview APK and its SHA-256 checksum. The preview uses Android’s generated debug certificate, not a release-store key.
 
+The native sync removes the website-only download directory so an APK never embeds an older APK.
+
 To rebuild it, use JDK 21 and Android SDK Platform 35 with Build Tools 35.0.0.
 
 ```sh

@@ -32,6 +32,8 @@ jobs:
         run: npm ci
       - name: Build and synchronize the Capacitor app
         run: npm run cap:sync
+      - name: Assert the APK cannot embed itself
+        run: test ! -d dist/downloads
       - name: Run deterministic native tests and assemble debug APK
         working-directory: android
         run: ./gradlew test assembleDebug --no-daemon
