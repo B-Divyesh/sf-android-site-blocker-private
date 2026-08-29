@@ -61,9 +61,12 @@ test('the resolver implementation excludes hard-coded external resolvers', async
   assert.match(runtime, /hasTransport\(NetworkCapabilities\.TRANSPORT_VPN\)/);
   assert.match(runtime, /10\.99\.0\.2/);
   assert.match(runner, /dns-ready-\$\{Date\.now\(\)\}\.quietwall\.test/);
+  assert.match(runner, /retryAdb\(\['shell', 'pm', 'clear', packageName\]/);
+  assert.match(runner, /retryAdb\(\['shell', 'appops', 'set', packageName, 'ACTIVATE_VPN', 'allow'\]/);
   assert.doesNotMatch(runner, /ping[^\n]+android\.com/);
   assert.match(workflow, /Start deterministic DNS before the emulator[\s\S]+dns-fixture\.mjs --port=53[\s\S]+android-emulator-runner@v2/);
   assert.match(workflow, /-dns-server 127\.0\.0\.1/);
+  assert.match(workflow, /-memory 3072 -cores 2/);
 });
 
 test('the package source limits enforcement to UDP DNS without device-admin permissions', async () => {

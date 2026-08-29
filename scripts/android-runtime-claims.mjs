@@ -27,6 +27,22 @@ function run(command, args, options = {}) {
   return execFileSync(command, args, { cwd: root, encoding: 'utf8', stdio: options.capture ? 'pipe' : 'inherit', ...options });
 }
 
+async function retryAdb(args, label, timeout = 180_000) {
+  const deadline = Date.now() + timeout;
+  let lastError;
+  while (Date.now() < deadline) {
+    try {
+      run('adb', ['wait-for-device'], { capture: true, timeout: 30_000 });
+      return run('adb', args, { capture: true, timeout: 45_000 });
+    } catch (error) {
+      lastError = error;
+      await new Promise((resolveRetry) => setTimeout(resolveRetry, 2000));
+    }
+  }
+  const detail = `${lastError?.stdout ?? ''}${lastError?.stderr ?? ''}`.trim();
+  throw new Error(`${label} did not recover before the ${timeout / 1000}-second deadline.${detail ? `\n${detail}` : ''}`);
+}
+
 const devices = run('adb', ['devices'], { capture: true });
 assert.match(devices, /\n\S+\s+device\b/, 'A booted, clean Android emulator is required.');
 
@@ -50,12 +66,16 @@ if (needsInstall) {
   run('adb', ['install', '-r', '-t', apk]);
   run('adb', ['push', checksumFile, apkMarker]);
 }
-try { run('adb', ['shell', 'pm', 'clear', packageName]); } catch { /* A first install is already clean. */ }
-run('adb', ['shell', 'appops', 'set', packageName, 'ACTIVATE_VPN', 'allow']);
+// A cold software-emulated API 35 system can restart system_server after package
+// optimization. Do not weaken isolation when that happens: wait for package and
+// app-ops services to recover, then require both clean-state operations to pass.
+const clearResult = await retryAdb(['shell', 'pm', 'clear', packageName], 'Android package-data clearing');
+assert.match(clearResult, /Success/, 'Android did not confirm that app data was cleared.');
+await retryAdb(['shell', 'appops', 'set', packageName, 'ACTIVATE_VPN', 'allow'], 'Android VPN-consent setup');
 // GitHub's cold API 35 image performs background dex work under heavy boot load. Compile this
 // exact installed package before instrumentation so the process is not selected for boot-time
 // pressure termination; this does not create or retain application data.
-if (needsInstall) run('adb', ['shell', 'cmd', 'package', 'compile', '-m', 'speed', '-f', packageName]);
+if (needsInstall) await retryAdb(['shell', 'cmd', 'package', 'compile', '-m', 'speed', '-f', packageName], 'Android package compilation');
 
 if (selected === 'network-resolver') {
   let networkReady = false;

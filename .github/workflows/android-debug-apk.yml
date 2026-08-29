@@ -80,7 +80,7 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -netfast -dns-server 127.0.0.1
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -netfast -memory 3072 -cores 2 -dns-server 127.0.0.1
           script: |
             grep -q '^READY dns-fixture' /tmp/quietwall-dns-fixture.log || { cat /tmp/quietwall-dns-fixture.log; exit 1; }
             adb emu network speed full
