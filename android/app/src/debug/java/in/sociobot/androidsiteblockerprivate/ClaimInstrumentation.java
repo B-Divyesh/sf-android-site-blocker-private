@@ -3,6 +3,7 @@ package in.sociobot.androidsiteblockerprivate;
 import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
@@ -13,7 +14,10 @@ import android.net.NetworkCapabilities;
 import android.net.TrafficStats;
 import android.net.VpnService;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
+import android.view.accessibility.AccessibilityNodeInfo;
 
+import java.io.FileInputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -67,7 +71,7 @@ public final class ClaimInstrumentation extends Instrumentation {
     }
 
     private void blockedDnsClaim(Context context) throws Exception {
-        require(VpnService.prepare(context) == null, "VPN consent was not granted.");
+        ensureVpnConsent(context);
         startVpn(context, Arrays.asList("blocked.example"), 0);
         byte[] query = query("blocked.example");
         byte[] response = exchange(query, 5000);
@@ -76,7 +80,7 @@ public final class ClaimInstrumentation extends Instrumentation {
     }
 
     private void privacyClaim(Context context) throws Exception {
-        require(VpnService.prepare(context) == null, "VPN consent was not granted.");
+        ensureVpnConsent(context);
         int uid = context.getApplicationInfo().uid;
         long sentBefore = TrafficStats.getUidTxBytes(uid);
         startVpn(context, Arrays.asList("blocked.example"), 0);
@@ -94,7 +98,7 @@ public final class ClaimInstrumentation extends Instrumentation {
     }
 
     private void resolverClaim(Context context) throws Exception {
-        require(VpnService.prepare(context) == null, "VPN consent was not granted.");
+        ensureVpnConsent(context);
         Set<String> resolvers = advertisedResolvers(context);
         require(!resolvers.isEmpty(), "No active-network resolver is available.");
         require(!resolvers.contains("10.99.0.2"), "Local VPN address appeared as an upstream resolver.");
@@ -106,7 +110,7 @@ public final class ClaimInstrumentation extends Instrumentation {
     }
 
     private void pauseClaim(Context context) throws Exception {
-        require(VpnService.prepare(context) == null, "VPN consent was not granted.");
+        ensureVpnConsent(context);
         startVpn(context, Arrays.asList("blocked.example"), System.currentTimeMillis() + 2500);
         require((exchange(query("blocked.example"), 5000)[3] & 0x0f) == 3, "Filtering was not active before expiry.");
         require(RuleStore.isUserEnabled(context), "Filtering stopped before expiry.");
@@ -142,6 +146,50 @@ public final class ClaimInstrumentation extends Instrumentation {
         RuleStore.save(context, true, rules, false, "22:00", "07:00", unlockAt);
         QuietwallVpnService.start(context);
         Thread.sleep(1200);
+    }
+
+    private void ensureVpnConsent(Context context) throws Exception {
+        if (VpnService.prepare(context) == null) return;
+
+        // Ask Android through the real system consent screen. The command first mirrors what a
+        // device lab does for repeatable clean profiles; the UI path remains the fallback and proof.
+        try (ParcelFileDescriptor descriptor = getUiAutomation().executeShellCommand("appops set " + PACKAGE + " ACTIVATE_VPN allow");
+             FileInputStream output = new FileInputStream(descriptor.getFileDescriptor())) {
+            byte[] buffer = new byte[256];
+            while (output.read(buffer) >= 0) { /* Drain command output before checking the result. */ }
+        }
+        Thread.sleep(250);
+        if (VpnService.prepare(context) == null) return;
+
+        Intent consent = VpnService.prepare(context);
+        require(consent != null, "VPN consent intent was unavailable.");
+        consent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(consent);
+        long deadline = System.currentTimeMillis() + 10_000;
+        while (System.currentTimeMillis() < deadline) {
+            AccessibilityNodeInfo root = getUiAutomation().getRootInActiveWindow();
+            if (root != null) {
+                AccessibilityNodeInfo action = findConsentAction(root);
+                if (action != null && action.isEnabled()) action.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+            }
+            Thread.sleep(250);
+            if (VpnService.prepare(context) == null) return;
+        }
+        throw new AssertionError("Android VPN consent was not approved.");
+    }
+
+    private static AccessibilityNodeInfo findConsentAction(AccessibilityNodeInfo node) {
+        CharSequence viewId = node.getViewIdResourceName();
+        CharSequence text = node.getText();
+        if ((viewId != null && (viewId.toString().endsWith(":id/button1") || viewId.toString().endsWith(":id/ok")))
+                || (text != null && ("OK".contentEquals(text) || "Allow".contentEquals(text)))) return node;
+        for (int index = 0; index < node.getChildCount(); index++) {
+            AccessibilityNodeInfo child = node.getChild(index);
+            if (child == null) continue;
+            AccessibilityNodeInfo found = findConsentAction(child);
+            if (found != null) return found;
+        }
+        return null;
     }
 
     private static void reset(Context context) throws Exception {
