@@ -81,7 +81,7 @@ for (const claim of targets) {
       : claim === 'pause-delay'
         ? `pause-${Date.now()}.example.net`
         : claim === 'network-resolver'
-          ? 'iana.org'
+          ? `probe-${Date.now()}.127-0-0-1.nip.io`
           : '';
   const instrumentationArgs = ['shell', 'am', 'instrument', '-w', '-r', '-e', 'claim', claim];
   if (probeDomain) instrumentationArgs.push('-e', 'domain', probeDomain);
