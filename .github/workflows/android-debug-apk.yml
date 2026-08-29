@@ -61,6 +61,11 @@ jobs:
           java-version: '21'
           cache: gradle
       - uses: android-actions/setup-android@v3
+      - name: Start deterministic DNS before the emulator
+        run: |
+          sudo nohup "$(command -v node)" scripts/dns-fixture.mjs --port=53 </dev/null >/tmp/quietwall-dns-fixture.log 2>&1 &
+          sleep 2
+          grep -q '^READY dns-fixture' /tmp/quietwall-dns-fixture.log || { cat /tmp/quietwall-dns-fixture.log; exit 1; }
       - name: Install web dependencies and sync Android
         run: |
           npm ci
@@ -77,8 +82,6 @@ jobs:
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -netfast -dns-server 127.0.0.1
           script: |
-            sudo nohup "$(command -v node)" scripts/dns-fixture.mjs --port=53 </dev/null >/tmp/quietwall-dns-fixture.log 2>&1 &
-            sleep 2
             grep -q '^READY dns-fixture' /tmp/quietwall-dns-fixture.log || { cat /tmp/quietwall-dns-fixture.log; exit 1; }
             adb emu network speed full
             adb emu network delay none

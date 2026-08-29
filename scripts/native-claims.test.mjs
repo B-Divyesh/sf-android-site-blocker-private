@@ -52,6 +52,7 @@ test('the resolver implementation excludes hard-coded external resolvers', async
   const service = await readFile(new URL('../android/app/src/main/java/in/sociobot/androidsiteblockerprivate/QuietwallVpnService.java', import.meta.url), 'utf8');
   const runtime = await readFile(new URL('../android/app/src/debug/java/in/sociobot/androidsiteblockerprivate/ClaimInstrumentation.java', import.meta.url), 'utf8');
   const runner = await readFile(new URL('./android-runtime-claims.mjs', import.meta.url), 'utf8');
+  const workflow = await readFile(new URL('../.github/workflows/android-debug-apk.yml', import.meta.url), 'utf8');
   assert.match(service, /getDnsServers\(\)/);
   assert.match(service, /protect\(socket\)/);
   assert.match(service, /socket\.connect\(resolver, 53\)/);
@@ -61,6 +62,8 @@ test('the resolver implementation excludes hard-coded external resolvers', async
   assert.match(runtime, /10\.99\.0\.2/);
   assert.match(runner, /dns-ready-\$\{Date\.now\(\)\}\.quietwall\.test/);
   assert.doesNotMatch(runner, /ping[^\n]+android\.com/);
+  assert.match(workflow, /Start deterministic DNS before the emulator[\s\S]+dns-fixture\.mjs --port=53[\s\S]+android-emulator-runner@v2/);
+  assert.match(workflow, /-dns-server 127\.0\.0\.1/);
 });
 
 test('the package source limits enforcement to UDP DNS without device-admin permissions', async () => {
