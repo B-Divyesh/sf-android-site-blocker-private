@@ -28,10 +28,12 @@ public final class ClaimInstrumentation extends Instrumentation {
     private static final String PACKAGE = "in.sociobot.androidsiteblockerprivate";
     private static final String PREFS = "quietwall_vpn";
     private String claim;
+    private String probeDomain;
 
     @Override public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
         claim = arguments == null ? null : arguments.getString("claim");
+        probeDomain = arguments == null ? null : arguments.getString("domain");
         start();
     }
 
@@ -68,8 +70,9 @@ public final class ClaimInstrumentation extends Instrumentation {
 
     private void blockedDnsClaim(Context context) throws Exception {
         ensureVpnConsent(context);
+        String domain = requiredProbeDomain();
         QuietwallVpnService.resetTestObservations();
-        startVpn(context, Arrays.asList("example.com"), 0);
+        startVpn(context, Arrays.asList(domain), 0);
         awaitExternalProbe("android-dns-filter", 10_000);
         require(QuietwallVpnService.testBlockedRequests > 0, "The external matching DNS request did not reach the filter.");
         require(QuietwallVpnService.testUpstreamRequests == 0, "A matching DNS request was sent upstream.");
@@ -77,9 +80,10 @@ public final class ClaimInstrumentation extends Instrumentation {
 
     private void privacyClaim(Context context) throws Exception {
         ensureVpnConsent(context);
+        String domain = requiredProbeDomain();
         int uid = context.getApplicationInfo().uid;
         QuietwallVpnService.resetTestObservations();
-        startVpn(context, Arrays.asList("example.org"), 0);
+        startVpn(context, Arrays.asList(domain), 0);
         long sentBefore = TrafficStats.getUidTxBytes(uid);
         awaitExternalProbe("native-privacy", 10_000);
         long sentAfter = TrafficStats.getUidTxBytes(uid);
@@ -92,7 +96,7 @@ public final class ClaimInstrumentation extends Instrumentation {
         Map<String, ?> stored = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getAll();
         Set<String> expectedKeys = new HashSet<>(Arrays.asList("user_enabled", "rules", "schedule_enabled", "schedule_start", "schedule_end", "unlock_at"));
         require(expectedKeys.equals(stored.keySet()), "Runtime storage contains unexpected keys.");
-        require(new HashSet<>(Arrays.asList("example.org")).equals(stored.get("rules")), "Configured rule was not the only stored domain.");
+        require(new HashSet<>(Arrays.asList(domain)).equals(stored.get("rules")), "Configured rule was not the only stored domain.");
     }
 
     private void resolverClaim(Context context) throws Exception {
@@ -109,11 +113,12 @@ public final class ClaimInstrumentation extends Instrumentation {
 
     private void pauseClaim(Context context) throws Exception {
         ensureVpnConsent(context);
+        String domain = requiredProbeDomain();
         QuietwallVpnService.resetTestObservations();
         // Start the tunnel before starting the compressed test timer. A cold emulator can take
         // well beyond the real eight-second test window to expose its first VPN network.
-        startVpn(context, Arrays.asList("example.net"), 0);
-        RuleStore.save(context, true, Arrays.asList("example.net"), false, "22:00", "07:00", System.currentTimeMillis() + 30_000);
+        startVpn(context, Arrays.asList(domain), 0);
+        RuleStore.save(context, true, Arrays.asList(domain), false, "22:00", "07:00", System.currentTimeMillis() + 30_000);
         require(RuleStore.isUserEnabled(context), "Filtering stopped before expiry.");
         awaitExternalProbe("pause-delay", 45_000);
         require(QuietwallVpnService.testBlockedRequests > 0, "The request was not blocked before expiry.");
@@ -197,5 +202,10 @@ public final class ClaimInstrumentation extends Instrumentation {
 
     private static void require(boolean condition, String message) {
         if (!condition) throw new AssertionError(message);
+    }
+
+    private String requiredProbeDomain() {
+        if (probeDomain == null || probeDomain.trim().isEmpty()) throw new AssertionError("Pass -e domain <unique-domain>.");
+        return probeDomain;
     }
 }

@@ -46,6 +46,18 @@ run('adb', ['shell', 'cmd', 'package', 'compile', '-m', 'speed', '-f', packageNa
 
 const targets = selected ? [selected] : Object.keys(claims);
 for (const claim of targets) {
+  const probeDomain = claim === 'android-dns-filter'
+    ? `blocked-${Date.now()}.example.com`
+    : claim === 'native-privacy'
+      ? `private-${Date.now()}.example.org`
+      : claim === 'pause-delay'
+        ? `pause-${Date.now()}.example.net`
+        : claim === 'network-resolver'
+          ? 'iana.org'
+          : '';
+  const instrumentationArgs = ['shell', 'am', 'instrument', '-w', '-r', '-e', 'claim', claim];
+  if (probeDomain) instrumentationArgs.push('-e', 'domain', probeDomain);
+  instrumentationArgs.push(runner);
   let child;
   let childDone;
   let childExit;
@@ -57,7 +69,7 @@ for (const claim of targets) {
       run('adb', ['logcat', '-c']);
       output = '';
       childExit = undefined;
-      child = spawn('adb', ['shell', 'am', 'instrument', '-w', '-r', '-e', 'claim', claim, runner], { cwd: root });
+      child = spawn('adb', instrumentationArgs, { cwd: root });
       child.stdout.setEncoding('utf8');
       child.stderr.setEncoding('utf8');
       child.stdout.on('data', (chunk) => { output += chunk; });
@@ -93,8 +105,7 @@ for (const claim of targets) {
     }
     assert.match(readyLogs, new RegExp(ready), `Android runtime claim ${claim} did not become ready.`);
 
-    const domain = claim === 'android-dns-filter' ? 'example.com' : claim === 'native-privacy' ? 'example.org' : claim === 'pause-delay' ? 'example.net' : 'iana.org';
-    const probe = spawnSync('adb', ['shell', 'ping', '-c', '1', '-W', '2', domain], { cwd: root, encoding: 'utf8' });
+    const probe = spawnSync('adb', ['shell', 'ping', '-c', '1', '-W', '2', probeDomain], { cwd: root, encoding: 'utf8' });
     const probeOutput = `${probe.stdout ?? ''}${probe.stderr ?? ''}`;
     if (claim === 'network-resolver') {
       assert.doesNotMatch(probeOutput, /bad address|unknown host|name or service not known|temporary failure in name resolution/i, 'Allowed DNS request did not resolve.');
@@ -103,11 +114,11 @@ for (const claim of targets) {
     }
     if (claim === 'pause-delay') {
       await new Promise((resolveExpiry) => setTimeout(resolveExpiry, 30_500));
-      spawnSync('adb', ['shell', 'ping', '-c', '1', '-W', '2', domain], { cwd: root, encoding: 'utf8' });
+      spawnSync('adb', ['shell', 'ping', '-c', '1', '-W', '2', probeDomain], { cwd: root, encoding: 'utf8' });
     }
   } else {
     run('adb', ['logcat', '-c']);
-    child = spawn('adb', ['shell', 'am', 'instrument', '-w', '-r', '-e', 'claim', claim, runner], { cwd: root });
+    child = spawn('adb', instrumentationArgs, { cwd: root });
     child.stdout.setEncoding('utf8');
     child.stderr.setEncoding('utf8');
     child.stdout.on('data', (chunk) => { output += chunk; });
