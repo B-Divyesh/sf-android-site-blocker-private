@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build && node scripts/finalize-sw.mjs",
-    "test": "npm run test:unit && npm run test:native-claims && npm run test:precache && playwright test",
+    "test": "npm run test:unit && npm run test:dns-fixture && npm run test:native-claims && npm run test:precache && playwright test",
+    "test:dns-fixture": "node --test scripts/dns-fixture.test.mjs",
     "test:precache": "npm run build && node --test scripts/verify-precache.test.mjs",
     "test:unit": "vitest run",
     "test:native-claims": "node --test scripts/native-claims.test.mjs",

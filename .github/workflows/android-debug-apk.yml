@@ -75,8 +75,14 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -netfast -dns-server 1.1.1.1,8.8.8.8
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -netfast -dns-server 127.0.0.1
           script: |
+            sudo "$(command -v node)" scripts/dns-fixture.mjs --port=53 >/tmp/quietwall-dns-fixture.log 2>&1 &
+            for attempt in $(seq 1 20); do
+              grep -q '^READY dns-fixture' /tmp/quietwall-dns-fixture.log && break
+              sleep 1
+            done
+            grep -q '^READY dns-fixture' /tmp/quietwall-dns-fixture.log
             adb emu network speed full
             adb emu network delay none
             adb shell cmd connectivity airplane-mode disable
