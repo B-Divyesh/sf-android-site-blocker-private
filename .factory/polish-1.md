@@ -109,7 +109,7 @@ Automated evidence names below refer to `tests/app.spec.ts`, `src/domain.test.ts
 
 - Local full suite: `npm test` — PASS.
 - Registered claims: all 15 exact commands — PASS.
-- Production build: `npm run build` — PASS; JS 31.55 KB raw / 11.55 KB gzip, CSS 15.61 KB raw / 4.25 KB gzip.
+- Production build: `npm run build` — PASS; JS 31.70 KB raw / 11.60 KB gzip, CSS 15.61 KB raw / 4.25 KB gzip.
 - Automated accessibility: zero serious or critical axe findings across seven routes and both Playwright projects.
 - Mobile: 390 × 844 has no horizontal overflow and no visible interactive target below 44 × 44 CSS px.
 - Privacy: full demo flow made same-origin requests only; demo opened `quietwall-demo` and not `quietwall-local`.
