@@ -1,1 +1,1 @@
-Block chosen websites across Android with a private list stored on your device.
+Block selected websites across Android with a private list that stays on your device.

@@ -25,7 +25,7 @@ The complete finding-to-fix-to-evidence map is in `.factory/polish-2.md`.
 The repaired tree was cloned into a new temporary directory before verification.
 
 - `npm ci`: 172 packages installed; 0 vulnerabilities.
-- `npm test`: 12 Vitest tests, 6 native package-contract tests, 1 generated-precache test, and 24 Playwright tests passed. Two project-specific tests skipped by design.
+- `npm test`: 12 Vitest tests, 6 native package-contract tests, 1 generated-precache test, and 26 Playwright tests passed. Two project-specific tests skipped by design.
 - `npm run build`: passed; emitted `dist/` and all route entries.
 - Exact non-emulator claim commands: 10 of 10 passed from the registry.
 - Exact full registry in the clean API 35 workflow: 15 of 15 passed.
@@ -50,7 +50,7 @@ Published APK SHA-256: `6f16c73c3c95722ff8e7bf3fb3a3131c3866d95b69e85bc85d31ce52
 - `@claim:demo-isolation` preserves a real rule through demo edits/reset/exit.
 - `@claim:browser-privacy` observes same-origin requests only and opens `quietwall-demo`, not `quietwall-local`.
 - `@claim:offline-demo` reloads the seeded sample after network disable.
-- Route tests cover one h1, `lang=en`, main/header/footer landmarks, metadata, title, focus, history, and 0 serious/critical axe violations.
+- Route tests cover exact titles, h1s, canonicals, legal destinations, the 404 deployment override, `lang=en`, landmarks, focus, history, and 0 serious/critical axe violations.
 - The mobile test finds no horizontal overflow and no visible target smaller than 44 × 44 CSS px.
 - Reduced-motion CSS removes meaningful transition duration.
 
@@ -94,7 +94,7 @@ Static output was deployed with the work order's `deploy-static.sh android-site-
 - Live terms: <https://android-site-blocker-private.sociobot.in/terms/>
 - Live 404 check: <https://android-site-blocker-private.sociobot.in/does-not-exist>
 
-Cold desktop and 390 × 844 contexts were checked after deployment for current copy, first-view demo state, reset/exit isolation, titles, focus, routes, same-origin traffic, offline reload, console errors, axe, and 404 status. The sample summary ended at 556.61 px; axe found 0 serious/critical issues; the app made only same-origin requests; non-404 routes logged no console errors; and the product 404 returned HTTP 404.
+Cold desktop and 390 × 844 contexts were checked after deployment for current copy, first-view demo state, reset/exit isolation, exact titles and canonicals, legal links, focus, routes, same-origin traffic, offline reload, console errors, axe, and 404 status. The sample summary ended at 556.61 px; axe found 0 serious/critical issues; the app made only same-origin requests; non-404 routes logged no console errors; and the product 404 returned HTTP 404.
 
 ## Known gaps
 

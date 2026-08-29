@@ -121,18 +121,44 @@ test('@claim:web-config-only reports invalid input and never claims the browser 
   await expect(page.getByText('RULES ARMED')).toHaveCount(0);
 });
 
-test('all routes have metadata, one h1, the shared skeleton, and no serious axe violations', async ({ page }) => {
-  for (const route of ['/', '/?demo=1', '/demo/', '/privacy/', '/terms/', '/offline.html', '/does-not-exist']) {
-    await page.goto(route);
+test('all routes have exact metadata, one h1, the shared skeleton, and no serious axe violations', async ({ page }) => {
+  const routes = [
+    { path: '/', title: 'Quietwall — block websites on Android', heading: 'Block websites across your Android device', canonical: '/' },
+    { path: '/?demo=1', title: 'Demo — Quietwall', heading: 'Try a sample Android block list', canonical: '/?demo=1' },
+    { path: '/demo/', title: 'Demo — Quietwall', heading: 'Try a sample Android block list', canonical: '/?demo=1' },
+    { path: '/privacy/', title: 'Privacy — Quietwall', heading: 'How Quietwall handles your data', canonical: '/privacy/' },
+    { path: '/terms/', title: 'Terms — Quietwall', heading: 'Terms for using Quietwall', canonical: '/terms/' },
+    { path: '/offline.html', title: 'Offline — Quietwall', heading: 'Quietwall is offline', canonical: '/offline.html' },
+    { path: '/does-not-exist', title: 'Page not found — Quietwall', heading: 'Page not found', canonical: '/404.html' }
+  ];
+  for (const route of routes) {
+    await page.goto(route.path);
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
     await expect(page.locator('main h1')).toHaveCount(1);
+    await expect(page.locator('main h1')).toHaveText(route.heading);
+    await expect(page).toHaveTitle(route.title);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `https://android-site-blocker-private.sociobot.in${route.canonical}`);
     await expect(page.locator('header nav')).toBeVisible();
     await expect(page.getByText('Built by Param Factory')).toBeVisible();
+    await expect(page.locator('footer a[href="/privacy/"]')).toHaveText('Privacy');
+    await expect(page.locator('footer a[href="/terms/"]')).toHaveText('Terms');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /.+/);
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /social-card\.png/);
     const results = await new AxeBuilder({ page }).analyze();
-    expect(results.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? '')), route).toEqual([]);
+    expect(results.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? '')), route.path).toEqual([]);
   }
+});
+
+test('legal routes, sitemap, and the product 404 deployment rule are real static resources', async ({ request }) => {
+  for (const route of ['/privacy/', '/terms/', '/demo/', '/offline.html', '/404.html', '/robots.txt', '/sitemap.xml']) {
+    const response = await request.get(route);
+    expect(response.ok(), route).toBe(true);
+  }
+  const sitemap = await (await request.get('/sitemap.xml')).text();
+  expect(sitemap).toContain('https://android-site-blocker-private.sociobot.in/privacy/');
+  expect(sitemap).toContain('https://android-site-blocker-private.sociobot.in/terms/');
+  const config = await (await request.get('/staticwebapp.config.json')).json();
+  expect(config.responseOverrides['404']).toEqual({ rewrite: '/404.html', statusCode: 404 });
 });
 
 test('client routing updates title, focus, history, and the route announcement', async ({ page }) => {

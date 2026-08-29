@@ -10,7 +10,7 @@ Primary evidence:
 - `.factory/evidence/lighthouse-polish-2-local.json`
 - `.factory/evidence/lighthouse-polish-2-live.json`
 - `.factory/evidence/live-polish-2/verify.json`
-- Clean-clone `npm test`: 12 unit, 6 native contract, 1 precache, and 24 browser tests passed; 2 intentional project skips.
+- Clean-clone `npm test`: 12 unit, 6 native contract, 1 precache, and 26 browser tests passed; 2 intentional project skips.
 - Clean-clone claim execution: all 10 web/unit/package commands passed locally. All 15 exact registry commands run in the clean API 35 emulator workflow.
 - Android workflow run: <https://github.com/B-Divyesh/sf-android-site-blocker-private/actions/runs/33234447132>
 - Published APK SHA-256: `6f16c73c3c95722ff8e7bf3fb3a3131c3866d95b69e85bc85d31ce5297045380`.
@@ -108,12 +108,12 @@ Every earlier finding was re-read and rechecked in this round. These rows map th
 | F-1-74 | Section headings remain meaningful out of context. | Heading outline across routes. |
 | F-1-75 | Web/native and import/export controls name their outcomes. | Web-config and portability claims. |
 | F-1-76 | README h1 states the Android blocking job. | README inspection. |
-| F-1-77 | Route metadata, canonical URLs, social image, favicon, and touch icon remain complete. | Route metadata test and live head check. |
-| F-1-78 | Every route retains the shared header, footer, legal links, factory credit, and build id. | Route/axe test over seven URLs. |
+| F-1-77 | Route metadata, canonical URLs, social image, favicon, and touch icon remain complete. | Exact title, h1, canonical, description, and social-card assertions over seven URLs; live head check. |
+| F-1-78 | Every route retains the shared header, footer, legal links, factory credit, and build id. | Route/axe test over seven URLs plus direct 200 checks for Privacy and Terms. |
 | F-1-79 | Client navigation updates title, focus, announcement, history, and restored scroll. | `client routing updates title, focus, history, and the route announcement`. |
-| F-1-80 | Sitemap retains all public routes. | Live `/sitemap.xml` check. |
+| F-1-80 | Sitemap retains all public routes. | Static-resource test checks the sitemap and its Privacy and Terms entries; live `/sitemap.xml` check. |
 | F-1-81 | Interactive targets remain at least 44 px at 390 px. | Mobile target-size test. |
-| F-1-82 | Legal/offline routes keep task h1s and route metadata. | Route/axe test. |
+| F-1-82 | Legal/offline routes keep task h1s and route metadata. | Exact route title, h1, canonical, legal-link, and static 200 assertions. |
 | F-1-83 | External source link remains labeled as external. | Shared footer test and live link crawl. |
 | F-1-84 | Three original Android walkthrough frames remain; demo now opens directly on the working sample. | Home screenshot, demo screenshot, F-2-1 browser test. |
 
