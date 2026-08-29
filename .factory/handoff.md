@@ -12,6 +12,7 @@ The round-2 repair:
 - replaces five source-regex Android claim commands with clean-emulator tests against the installed public APK;
 - reuses the checksum-verified APK between isolated claim runs and batches each external probe set, avoiding repeated emulator network rebuilds;
 - gives the API-35 lab an explicit DNS service, then verifies that Quietwall discovers and uses Android's advertised resolver;
+- waits until Android makes Quietwall the active DNS path before sending an external claim probe;
 - adds the Android active-network permission required to discover the current resolver;
 - starts the compressed pause clock only after Android exposes Quietwall's DNS path and uses unique DNS probes;
 - removes the unregistered hero transfer sentence and README build-behavior sentence;
@@ -27,7 +28,7 @@ The complete finding-to-fix-to-evidence map is in `.factory/polish-2.md`.
 The repaired tree was cloned into a new temporary directory before verification.
 
 - `npm ci`: 172 packages installed; 0 vulnerabilities.
-- `npm test`: 12 Vitest tests, 6 native package-contract tests, 1 generated-precache test, and 26 Playwright tests passed. Two project-specific tests skipped by design.
+- `npm test`: 12 Vitest tests, 2 DNS-fixture tests, 6 native package-contract tests, 1 generated-precache test, and 26 Playwright tests passed. Two project-specific tests skipped by design.
 - `npm run build`: passed; emitted `dist/` and all route entries.
 - Exact non-emulator claim commands: 10 of 10 passed from the registry.
 - Exact full registry in the clean API 35 workflow: 15 of 15 passed.
@@ -42,9 +43,9 @@ The clean emulator workflow installs `public/downloads/quietwall.apk`, confirms 
 - `@claim:pause-delay`: the request was blocked before expiry and filtering turned off after expiry.
 - `@claim:filter-boundary`: installed package services use VPN authority and have no device-admin permission or service.
 
-Exact successful workflow run: pending the final pushed repair commit.
+Exact successful workflow run: <https://github.com/B-Divyesh/sf-android-site-blocker-private/actions/runs/33241895723>.
 
-Published APK SHA-256: `6f16c73c3c95722ff8e7bf3fb3a3131c3866d95b69e85bc85d31ce5297045380`.
+Published APK SHA-256: `4e0fca19c1719a86e29db74f328377d258b91ab7e57f5a0ba9ccaf0728d05b34`.
 
 ### Browser, accessibility, privacy, and offline
 
@@ -67,7 +68,7 @@ Evidence:
 - `.factory/evidence/live-polish-2/demo-first-viewport.png`
 
 Local Lighthouse: 100 performance, 100 accessibility, 100 best practices, 100 SEO; LCP 1.2 s; CLS 0.
-Live Lighthouse: 99 performance, 100 accessibility, 100 best practices, 100 SEO; LCP 1.0 s; CLS 0; 30 KiB transferred.
+Live Lighthouse: 100 performance, 100 accessibility, 100 best practices, 100 SEO; LCP 1.1 s; CLS 0; 32 KiB transferred.
 
 Production bundles: main JavaScript 32.47 kB raw / 11.80 kB gzip; CSS 17.26 kB raw / 4.53 kB gzip. No font files, third-party scripts, analytics, or runtime API are shipped.
 

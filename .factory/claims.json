@@ -9,7 +9,7 @@
   {
     "id": "browser-privacy",
     "claim": "The browser block list stays on the device and demo traffic is same-origin only.",
-    "where": "landing facts, privacy, README",
+    "where": "landing facts, privacy, README, catalog",
     "test": "npm run test:e2e -- --project=desktop --grep @claim:browser-privacy",
     "sandbox": "fresh ?demo=1 context; record all requests and inspect IndexedDB database names"
   },
@@ -79,14 +79,14 @@
   {
     "id": "android-dns-filter",
     "claim": "After VPN consent, the Android app returns a local not-found response for matching standard DNS requests.",
-    "where": "headline, walkthrough, limits, README",
+    "where": "headline, walkthrough, limits, README, catalog",
     "test": "npm run test:android-runtime -- --claim=android-dns-filter",
     "sandbox": "clean emulator; install the published APK, grant VPN consent, resolve a public sample domain through Android, and assert the VPN returns a not-found result"
   },
   {
     "id": "native-privacy",
     "claim": "A locally blocked request creates no app egress, and the Android app stores settings rather than browsing history.",
-    "where": "privacy, README",
+    "where": "privacy, README, catalog",
     "test": "npm run test:android-runtime -- --claim=native-privacy",
     "sandbox": "clean emulator; install the published APK, record UID egress around a blocked request, and inspect its runtime databases and private settings keys"
   },

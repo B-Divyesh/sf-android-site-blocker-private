@@ -10,10 +10,10 @@ Primary evidence:
 - `.factory/evidence/lighthouse-polish-2-local.json`
 - `.factory/evidence/lighthouse-polish-2-live.json`
 - `.factory/evidence/live-polish-2/verify.json`
-- Clean-clone `npm test`: 12 unit, 6 native contract, 1 precache, and 26 browser tests passed; 2 intentional project skips.
+- Clean-clone `npm test`: 12 unit, 2 DNS fixture, 6 native contract, 1 precache, and 26 browser tests passed; 2 intentional project skips.
 - Clean-clone claim execution: all 10 web/unit/package commands passed locally. All 15 exact registry commands run in the clean API 35 emulator workflow.
-- Android workflow run: <https://github.com/B-Divyesh/sf-android-site-blocker-private/actions/runs/33234447132>
-- Published APK SHA-256: `6f16c73c3c95722ff8e7bf3fb3a3131c3866d95b69e85bc85d31ce5297045380`.
+- Android workflow run: <https://github.com/B-Divyesh/sf-android-site-blocker-private/actions/runs/33241895723>
+- Published APK SHA-256: `4e0fca19c1719a86e29db74f328377d258b91ab7e57f5a0ba9ccaf0728d05b34`.
 - Live site: <https://android-site-blocker-private.sociobot.in>
 
 ## Review 2 findings
@@ -21,7 +21,7 @@ Primary evidence:
 | Finding | Change made | Evidence |
 | --- | --- | --- |
 | F-2-1 | Demo routes now skip the marketing hero. The focused demo h1, isolated banner, all four rules, Enabled/Paused states, 21:30–07:00 hours, and 15-minute delay fit in the first 390 × 844 viewport. | `one click opens visible sample data in the first mobile viewport`; `@claim:demo-isolation`; `demo-first-viewport-polish-2.png`; live `/?demo=1`. |
-| F-2-2 | Replaced the five source-only claim commands with installed-APK instrumentation. The API-35 lab starts with an explicit test-network DNS service; Quietwall still discovers it from Android rather than hard-coding it. The runner verifies and installs the public APK once, clears app data for every command, grants VPN consent, waits for the underlying DNS service and Quietwall's DNS path, and observes each runtime outcome. Batched, uncached external probes avoid losing the observation window to repeated cold `adb shell` startup or Android’s DNS cache. | `@claim:android-dns-filter`, `@claim:native-privacy`, `@claim:network-resolver`, `@claim:filter-boundary`, `@claim:pause-delay`; exact clean-emulator workflow. |
+| F-2-2 | Replaced the five source-only claim commands with installed-APK instrumentation. The API-35 lab verifies and installs the public APK, clears app data per command, grants VPN consent, waits until Android makes Quietwall the active DNS path, and observes each runtime outcome. This final active-network check fixed a race found during evidence review: Android exposed the VPN before moving system DNS to it. Batched, uncached external probes avoid DNS-cache and process-startup ambiguity. | `@claim:android-dns-filter`, `@claim:native-privacy`, `@claim:network-resolver`, `@claim:filter-boundary`, `@claim:pause-delay`; clean-emulator workflow run `33241895723`. |
 | F-2-3 | Removed the unregistered “Rules move…” hero caption. No rule-transfer claim remains. | Copy audit; source search for the removed sentence; `home-desktop-polish-2.png`; live root. |
 | F-2-4 | Replaced “Check its SHA-256” with “Download APK checksum to confirm the file did not change” and the result-naming link “Download APK checksum.” | `@claim:apk-download`; `@claim:apk-signature`; `home-desktop-polish-2.png`; live root and checksum URL. |
 | F-2-5 | Removed the unregistered native-sync implementation claim from the public README. | README search; clean-clone build and package checks; no old sentence in source. |
@@ -72,7 +72,7 @@ Every earlier finding was re-read and rechecked in this round. These rows map th
 | F-1-38 | Vite text remains an instruction, not a product claim. | README inspection. |
 | F-1-39 | The broad no-environment assertion remains absent. | README search. |
 | F-1-40 | `npm test` runs unit, package contract, precache, desktop, mobile, axe, privacy, and offline checks. | Clean-clone `npm test`. |
-| F-1-41 | Named validation, persistence, routing, accessibility, privacy, mobile, and offline tests remain executable. | 24 Playwright passes and 2 project skips. |
+| F-1-41 | Named validation, persistence, routing, accessibility, privacy, mobile, and offline tests remain executable. | 26 Playwright passes and 2 project skips. |
 | F-1-42 | Playwright remains pinned to 1.58.2 and browser installation is an instruction. | `package.json`, lockfile, clean checkout. |
 | F-1-43 | Exact `npm run build` succeeds from a clean checkout. | Clean-clone build output. |
 | F-1-44 | Build emits `dist/index.html` plus every route entry. | Vite output and precache test. |
@@ -121,4 +121,4 @@ Every earlier finding was re-read and rechecked in this round. These rows map th
 
 No finding is deferred. The original pixel control-room identity, PWA/static deployment class, and Capacitor Android project are preserved.
 
-Post-deploy cold checks found a 556.61 px demo-summary bottom at 390 × 844, 0 serious/critical axe findings, only same-origin requests, no console errors, working offline reload, and a styled HTTP 404. Live Lighthouse scored 99 performance and 100 in the other three audited categories, with 1.0 s LCP and 0 CLS.
+Post-deploy cold checks found a 556.61 px demo-summary bottom at 390 × 844, 0 serious/critical axe findings, only same-origin requests, no console errors, working offline reload, and a styled HTTP 404. Live Lighthouse scored 100 in all four audited categories, with 1.1 s LCP and 0 CLS.
