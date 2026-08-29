@@ -77,12 +77,9 @@ jobs:
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -netfast -dns-server 127.0.0.1
           script: |
-            sudo "$(command -v node)" scripts/dns-fixture.mjs --port=53 >/tmp/quietwall-dns-fixture.log 2>&1 &
-            for attempt in $(seq 1 20); do
-              grep -q '^READY dns-fixture' /tmp/quietwall-dns-fixture.log && break
-              sleep 1
-            done
-            grep -q '^READY dns-fixture' /tmp/quietwall-dns-fixture.log
+            sudo nohup "$(command -v node)" scripts/dns-fixture.mjs --port=53 </dev/null >/tmp/quietwall-dns-fixture.log 2>&1 &
+            sleep 2
+            grep -q '^READY dns-fixture' /tmp/quietwall-dns-fixture.log || { cat /tmp/quietwall-dns-fixture.log; exit 1; }
             adb emu network speed full
             adb emu network delay none
             adb shell cmd connectivity airplane-mode disable
