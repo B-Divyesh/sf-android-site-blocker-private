@@ -12,6 +12,7 @@ test('the APK packages the local VPN, matcher, DNS response, and consent path', 
   const plugin = await readFile(new URL('../android/app/src/main/java/in/sociobot/androidsiteblockerprivate/QuietwallVpnPlugin.java', import.meta.url), 'utf8');
   const matcherTest = await readFile(new URL('../android/app/src/test/java/in/sociobot/androidsiteblockerprivate/RuleMatcherTest.java', import.meta.url), 'utf8');
   const packetTest = await readFile(new URL('../android/app/src/test/java/in/sociobot/androidsiteblockerprivate/DnsPacketTest.java', import.meta.url), 'utf8');
+  const manifest = await readFile(new URL('../android/app/src/main/AndroidManifest.xml', import.meta.url), 'utf8');
   assert.match(service, /extends VpnService/);
   assert.match(service, /DnsMessage\.nxdomain/);
   assert.match(service, /RuleMatcher\.matches/);
@@ -19,6 +20,7 @@ test('the APK packages the local VPN, matcher, DNS response, and consent path', 
   assert.match(plugin, /VpnService\.prepare/);
   assert.match(matcherTest, /bareDomainMatchesApexAndSubdomains/);
   assert.match(packetTest, /parsesAndAnswersIpv4DnsWithoutChangingQuestion/);
+  assert.match(manifest, /android\.permission\.ACCESS_NETWORK_STATE/);
   const dexStrings = execFileSync('sh', ['-c', `unzip -p '${apkPath}' classes4.dex | strings`], { encoding: 'utf8' });
   assert.match(dexStrings, /QuietwallVpnService/);
   assert.match(dexStrings, /RuleMatcher/);
