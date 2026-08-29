@@ -10,6 +10,8 @@ The round-2 repair:
 - shows all four rules, enabled/paused state, focus hours, and delay within 390 × 844;
 - keeps demo and real IndexedDB databases isolated through reset and exit;
 - replaces five source-regex Android claim commands with clean-emulator tests against the installed public APK;
+- adds the Android active-network permission required to discover the current resolver;
+- starts the compressed pause clock only after Android exposes Quietwall's DNS path and uses unique DNS probes;
 - removes the unregistered hero transfer sentence and README build-behavior sentence;
 - rewrites the checksum action in plain language;
 - retains real routes, route titles, focus/history behavior, styled 404, legal links, offline shell, and product-specific responsive styling.
@@ -38,7 +40,9 @@ The clean emulator workflow installs `public/downloads/quietwall.apk`, confirms 
 - `@claim:pause-delay`: the request was blocked before expiry and filtering turned off after expiry.
 - `@claim:filter-boundary`: installed package services use VPN authority and have no device-admin permission or service.
 
-Workflow: <https://github.com/B-Divyesh/sf-android-site-blocker-private/actions/workflows/android-debug-apk.yml>
+Exact workflow run: <https://github.com/B-Divyesh/sf-android-site-blocker-private/actions/runs/33234447132>
+
+Published APK SHA-256: `6f16c73c3c95722ff8e7bf3fb3a3131c3866d95b69e85bc85d31ce5297045380`.
 
 ### Browser, accessibility, privacy, and offline
 

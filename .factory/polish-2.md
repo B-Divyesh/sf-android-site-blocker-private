@@ -12,7 +12,8 @@ Primary evidence:
 - `.factory/evidence/live-polish-2/verify.json`
 - Clean-clone `npm test`: 12 unit, 6 native contract, 1 precache, and 24 browser tests passed; 2 intentional project skips.
 - Clean-clone claim execution: all 10 web/unit/package commands passed locally. All 15 exact registry commands run in the clean API 35 emulator workflow.
-- Android workflow: <https://github.com/B-Divyesh/sf-android-site-blocker-private/actions/workflows/android-debug-apk.yml>
+- Android workflow run: <https://github.com/B-Divyesh/sf-android-site-blocker-private/actions/runs/33234447132>
+- Published APK SHA-256: `6f16c73c3c95722ff8e7bf3fb3a3131c3866d95b69e85bc85d31ce5297045380`.
 - Live site: <https://android-site-blocker-private.sociobot.in>
 
 ## Review 2 findings
@@ -20,7 +21,7 @@ Primary evidence:
 | Finding | Change made | Evidence |
 | --- | --- | --- |
 | F-2-1 | Demo routes now skip the marketing hero. The focused demo h1, isolated banner, all four rules, Enabled/Paused states, 21:30–07:00 hours, and 15-minute delay fit in the first 390 × 844 viewport. | `one click opens visible sample data in the first mobile viewport`; `@claim:demo-isolation`; `demo-first-viewport-polish-2.png`; live `/?demo=1`. |
-| F-2-2 | Replaced the five source-only claim commands with installed-APK instrumentation. Each command clears app data, grants VPN consent, and observes its own runtime outcome on a clean API 35 emulator. | `@claim:android-dns-filter`, `@claim:native-privacy`, `@claim:network-resolver`, `@claim:filter-boundary`, `@claim:pause-delay`; clean emulator workflow. |
+| F-2-2 | Replaced the five source-only claim commands with installed-APK instrumentation. Each command verifies the public APK checksum, clears app data, grants VPN consent, waits for Quietwall's DNS path, and observes its own runtime outcome on a clean API 35 emulator. Runtime verification also caught and fixed the missing active-network permission, a pause clock that started before VPN readiness, and cached/early DNS probes. | `@claim:android-dns-filter`, `@claim:native-privacy`, `@claim:network-resolver`, `@claim:filter-boundary`, `@claim:pause-delay`; exact clean-emulator run linked above. |
 | F-2-3 | Removed the unregistered “Rules move…” hero caption. No rule-transfer claim remains. | Copy audit; source search for the removed sentence; `home-desktop-polish-2.png`; live root. |
 | F-2-4 | Replaced “Check its SHA-256” with “Download APK checksum to confirm the file did not change” and the result-naming link “Download APK checksum.” | `@claim:apk-download`; `@claim:apk-signature`; `home-desktop-polish-2.png`; live root and checksum URL. |
 | F-2-5 | Removed the unregistered native-sync implementation claim from the public README. | README search; clean-clone build and package checks; no old sentence in source. |
