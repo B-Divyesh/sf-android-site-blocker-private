@@ -70,4 +70,4 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: true
-          script: cd android && ./gradlew installDebug installDebugAndroidTest --no-daemon && adb shell appops set in.sociobot.androidsiteblockerprivate ACTIVATE_VPN allow && adb shell am instrument -w in.sociobot.androidsiteblockerprivate.test/androidx.test.runner.AndroidJUnitRunner
+          script: cd android && ./gradlew :app:installDebug :app:installDebugAndroidTest --no-daemon && adb shell appops set in.sociobot.androidsiteblockerprivate ACTIVATE_VPN allow && adb shell am instrument -w in.sociobot.androidsiteblockerprivate.test/androidx.test.runner.AndroidJUnitRunner
