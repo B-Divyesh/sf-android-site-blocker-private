@@ -40,7 +40,7 @@ public final class QuietwallVpnService extends VpnService {
     private static final String IPV6_DNS = "fd51:7177:616c:6c00::2";
 
     // Debug instrumentation reads these process-local observations while a clean-device claim is
-    // running. They are never persisted, returned to the WebView, or updated in release builds.
+    // running. They are never persisted or returned to the WebView.
     static volatile int testBlockedRequests;
     static volatile int testUpstreamRequests;
     static volatile String testLastResolver;
@@ -148,7 +148,7 @@ public final class QuietwallVpnService extends VpnService {
                 }
                 byte[] reply;
                 if (RuleStore.isBlockingActive(state, System.currentTimeMillis()) && RuleMatcher.matches(parsed.name, state.rules)) {
-                    if (BuildConfig.DEBUG) testBlockedRequests++;
+                    testBlockedRequests++;
                     reply = DnsMessage.nxdomain(query, query.length, parsed);
                 } else {
                     reply = resolveNormally(query);
@@ -172,10 +172,8 @@ public final class QuietwallVpnService extends VpnService {
                 if (!protect(socket)) return null;
                 socket.setSoTimeout(3500);
                 socket.connect(resolver, 53);
-                if (BuildConfig.DEBUG) {
-                    testUpstreamRequests++;
-                    testLastResolver = resolver.getHostAddress();
-                }
+                testUpstreamRequests++;
+                testLastResolver = resolver.getHostAddress();
                 socket.send(new DatagramPacket(request, request.length));
                 byte[] response = new byte[65535];
                 DatagramPacket received = new DatagramPacket(response, response.length);
