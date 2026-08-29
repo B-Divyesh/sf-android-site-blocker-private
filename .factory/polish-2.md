@@ -8,6 +8,8 @@ Primary evidence:
 - `.factory/evidence/demo-first-viewport-polish-2.png`
 - `.factory/evidence/home-desktop-polish-2.png`
 - `.factory/evidence/lighthouse-polish-2-local.json`
+- `.factory/evidence/lighthouse-polish-2-live.json`
+- `.factory/evidence/live-polish-2/verify.json`
 - Clean-clone `npm test`: 12 unit, 6 native contract, 1 precache, and 24 browser tests passed; 2 intentional project skips.
 - Clean-clone claim execution: all 10 web/unit/package commands passed locally. All 15 exact registry commands run in the clean API 35 emulator workflow.
 - Android workflow: <https://github.com/B-Divyesh/sf-android-site-blocker-private/actions/workflows/android-debug-apk.yml>
@@ -117,3 +119,5 @@ Every earlier finding was re-read and rechecked in this round. These rows map th
 ## Result
 
 No finding is deferred. The original pixel control-room identity, PWA/static deployment class, and Capacitor Android project are preserved.
+
+Post-deploy cold checks found a 556.61 px demo-summary bottom at 390 × 844, 0 serious/critical axe findings, only same-origin requests, no console errors, working offline reload, and a styled HTTP 404. Live Lighthouse scored 100 in all four audited categories with 0.9 s LCP and 0 CLS.

@@ -56,8 +56,12 @@ Evidence:
 - `.factory/evidence/demo-first-viewport-polish-2.png`
 - `.factory/evidence/home-desktop-polish-2.png`
 - `.factory/evidence/lighthouse-polish-2-local.json`
+- `.factory/evidence/lighthouse-polish-2-live.json`
+- `.factory/evidence/live-polish-2/verify.json`
+- `.factory/evidence/live-polish-2/demo-first-viewport.png`
 
 Local Lighthouse: 100 performance, 100 accessibility, 100 best practices, 100 SEO; LCP 1.2 s; CLS 0.
+Live Lighthouse: 100 performance, 100 accessibility, 100 best practices, 100 SEO; LCP 0.9 s; CLS 0.
 
 Production bundles: main JavaScript 32.47 kB raw / 11.80 kB gzip; CSS 17.26 kB raw / 4.53 kB gzip. No font files, third-party scripts, analytics, or runtime API are shipped.
 
@@ -86,7 +90,7 @@ Static output was deployed with the work order's `deploy-static.sh android-site-
 - Live terms: <https://android-site-blocker-private.sociobot.in/terms/>
 - Live 404 check: <https://android-site-blocker-private.sociobot.in/does-not-exist>
 
-Cold desktop and 390 × 844 contexts were checked after deployment for current copy, first-view demo state, reset/exit isolation, titles, focus, routes, same-origin traffic, offline reload, console errors, axe, and 404 status.
+Cold desktop and 390 × 844 contexts were checked after deployment for current copy, first-view demo state, reset/exit isolation, titles, focus, routes, same-origin traffic, offline reload, console errors, axe, and 404 status. The sample summary ended at 556.61 px; axe found 0 serious/critical issues; the app made only same-origin requests; non-404 routes logged no console errors; and the product 404 returned HTTP 404.
 
 ## Known gaps
 
