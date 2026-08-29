@@ -60,9 +60,10 @@ if (needsInstall) run('adb', ['shell', 'cmd', 'package', 'compile', '-m', 'speed
 if (selected === 'network-resolver') {
   let networkReady = false;
   let lastNetworkCheck = '';
+  const readinessDomain = `dns-ready-${Date.now()}.quietwall.test`;
   const networkDeadline = Date.now() + 180_000;
   while (Date.now() < networkDeadline) {
-    const check = spawnSync('adb', ['shell', 'ping', '-c', '1', '-W', '2', 'android.com'], { cwd: root, encoding: 'utf8' });
+    const check = spawnSync('adb', ['shell', 'ping', '-c', '1', '-W', '2', readinessDomain], { cwd: root, encoding: 'utf8' });
     lastNetworkCheck = `${check.stdout ?? ''}${check.stderr ?? ''}`;
     if (!/bad address|unknown host|name or service not known|temporary failure in name resolution/i.test(lastNetworkCheck)) {
       networkReady = true;
