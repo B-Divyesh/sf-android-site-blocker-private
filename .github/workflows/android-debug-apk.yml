@@ -79,7 +79,7 @@ jobs:
             adb emu network speed full
             adb emu network delay none
             adb shell cmd connectivity airplane-mode disable
-            adb shell svc data enable
-            adb shell svc wifi enable
+            adb shell svc data enable || true
+            adb shell svc wifi enable || true
             adb shell settings put global private_dns_mode off
             node scripts/run-claim-registry.mjs
