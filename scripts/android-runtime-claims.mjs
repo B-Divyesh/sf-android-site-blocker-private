@@ -53,7 +53,9 @@ for (const claim of targets) {
   const childDone = new Promise((resolveExit) => child.on('close', (code) => { childExit = code; resolveExit(code); }));
   if (claim !== 'filter-boundary') {
     const ready = `READY:${claim}`;
-    const deadline = Date.now() + 45_000;
+    // A freshly booted API 35 emulator may spend close to a minute compiling and starting the
+    // first installed process. This remains a readiness bound, not the claim's result timeout.
+    const deadline = Date.now() + 120_000;
     let readyLogs = '';
     while (Date.now() < deadline) {
       readyLogs = run('adb', ['logcat', '-d', '-s', 'QuietwallClaim:I'], { capture: true });
