@@ -49,3 +49,5 @@ State changes use a 180 ms stepped fade/translate and the shield gate slides 220
 ## Responsive intent
 
 Desktop pairs the explanation and live utility in a 5/7 split. At 760 px, all controls become a single task column, the hero illustration crops to its meaningful gate, and tertiary explanatory copy moves after the working tool. At 390 px, header labels shorten, actions stack, and no fixed bar obscures Android safe areas.
+
+Demo routes use the same control-room language but remove the marketing hero. A compact lime-edged status rack puts real sample rules and timing above the working controls, so the first post-click screen reads as an active utility rather than a second landing page.

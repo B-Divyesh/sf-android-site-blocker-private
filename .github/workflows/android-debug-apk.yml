@@ -66,6 +66,7 @@ jobs:
           npm ci
           npx playwright install --with-deps chromium
           npm run cap:sync
+          npm run build
       - name: Run every claim against clean browser and Android sandboxes
         uses: reactivecircus/android-emulator-runner@v2
         with:
