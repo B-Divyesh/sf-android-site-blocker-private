@@ -3,7 +3,6 @@ package in.sociobot.androidsiteblockerprivate;
 import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
@@ -14,9 +13,10 @@ import android.net.NetworkCapabilities;
 import android.net.TrafficStats;
 import android.net.VpnService;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
-import android.view.accessibility.AccessibilityNodeInfo;
 
+import java.io.FileInputStream;
 import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -159,35 +159,17 @@ public final class ClaimInstrumentation extends Instrumentation {
     private void ensureVpnConsent(Context context) throws Exception {
         if (VpnService.prepare(context) == null) return;
 
-        Intent consent = VpnService.prepare(context);
-        require(consent != null, "VPN consent intent was unavailable.");
-        consent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(consent);
-        long deadline = System.currentTimeMillis() + 10_000;
-        while (System.currentTimeMillis() < deadline) {
-            AccessibilityNodeInfo root = getUiAutomation().getRootInActiveWindow();
-            if (root != null) {
-                AccessibilityNodeInfo action = findConsentAction(root);
-                if (action != null && action.isEnabled()) action.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-            }
-            Thread.sleep(250);
-            if (VpnService.prepare(context) == null) return;
+        // A clean device lab grants the same Android app-op that the system consent dialog
+        // records. Run it through UiAutomation as well as the host-side grant so the check is
+        // deterministic across emulator images and users, then prove Android accepted it.
+        try (ParcelFileDescriptor descriptor = getUiAutomation().executeShellCommand(
+                "appops set " + PACKAGE + " ACTIVATE_VPN allow");
+             FileInputStream output = new FileInputStream(descriptor.getFileDescriptor())) {
+            byte[] buffer = new byte[256];
+            while (output.read(buffer) >= 0) { /* Drain command output before checking. */ }
         }
-        throw new AssertionError("Android VPN consent was not approved.");
-    }
-
-    private static AccessibilityNodeInfo findConsentAction(AccessibilityNodeInfo node) {
-        CharSequence viewId = node.getViewIdResourceName();
-        CharSequence text = node.getText();
-        if ((viewId != null && (viewId.toString().endsWith(":id/button1") || viewId.toString().endsWith(":id/ok")))
-                || (text != null && ("OK".contentEquals(text) || "Allow".contentEquals(text)))) return node;
-        for (int index = 0; index < node.getChildCount(); index++) {
-            AccessibilityNodeInfo child = node.getChild(index);
-            if (child == null) continue;
-            AccessibilityNodeInfo found = findConsentAction(child);
-            if (found != null) return found;
-        }
-        return null;
+        Thread.sleep(250);
+        require(VpnService.prepare(context) == null, "Android VPN consent was not granted.");
     }
 
     private static void reset(Context context) throws Exception {

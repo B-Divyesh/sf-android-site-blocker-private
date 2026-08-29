@@ -45,20 +45,29 @@ for (const claim of targets) {
   run('adb', ['logcat', '-c']);
   const child = spawn('adb', ['shell', 'am', 'instrument', '-w', '-r', '-e', 'claim', claim, runner], { cwd: root });
   let output = '';
+  let childExit;
   child.stdout.setEncoding('utf8');
   child.stderr.setEncoding('utf8');
   child.stdout.on('data', (chunk) => { output += chunk; });
   child.stderr.on('data', (chunk) => { output += chunk; });
-  const childDone = new Promise((resolveExit) => child.on('close', resolveExit));
+  const childDone = new Promise((resolveExit) => child.on('close', (code) => { childExit = code; resolveExit(code); }));
   if (claim !== 'filter-boundary') {
     const ready = `READY:${claim}`;
     const deadline = Date.now() + 45_000;
+    let readyLogs = '';
     while (Date.now() < deadline) {
-      const logs = run('adb', ['logcat', '-d', '-s', 'QuietwallClaim:I'], { capture: true });
-      if (logs.includes(ready)) break;
+      readyLogs = run('adb', ['logcat', '-d', '-s', 'QuietwallClaim:I'], { capture: true });
+      if (readyLogs.includes(ready) || childExit !== undefined) break;
       await new Promise((resolveReady) => setTimeout(resolveReady, 250));
     }
-    const readyLogs = run('adb', ['logcat', '-d', '-s', 'QuietwallClaim:I'], { capture: true });
+    if (!readyLogs.includes(ready)) {
+      process.stderr.write(output);
+      process.stderr.write(run('adb', ['logcat', '-d', '-t', '500'], { capture: true }));
+      if (childExit === undefined) {
+        run('adb', ['shell', 'am', 'force-stop', packageName]);
+        await childDone;
+      }
+    }
     assert.match(readyLogs, new RegExp(ready), `Android runtime claim ${claim} did not become ready.`);
 
     const domain = claim === 'android-dns-filter' ? 'example.com' : claim === 'native-privacy' ? 'example.org' : claim === 'pause-delay' ? 'example.net' : 'iana.org';
