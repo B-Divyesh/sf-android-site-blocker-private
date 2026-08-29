@@ -46,8 +46,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     process.exitCode = 1;
     server.close();
   });
-  // QEMU's userspace network reaches the runner through a non-loopback source.
-  // Listen on every IPv4 interface while the workflow job is alive; the hosted
-  // runner firewall still keeps this fixture private to the job.
-  server.bind(port, '0.0.0.0', () => process.stdout.write(`READY dns-fixture 0.0.0.0:${port}\n`));
+  // QEMU's DNS proxy runs on the host and reaches the configured resolver here.
+  // Keep the fixture loopback-only so it cannot accept traffic outside the job.
+  server.bind(port, '127.0.0.1', () => process.stdout.write(`READY dns-fixture 127.0.0.1:${port}\n`));
 }
