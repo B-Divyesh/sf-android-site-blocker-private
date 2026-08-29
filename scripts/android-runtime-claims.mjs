@@ -36,13 +36,26 @@ const expected = readFileSync(checksumFile, 'utf8').trim().split(/\s+/)[0];
 const actual = createHash('sha256').update(readFileSync(apk)).digest('hex');
 assert.equal(actual, expected, 'The published APK must match its public checksum.');
 
-run('adb', ['install', '-r', '-t', apk]);
+// The registry invokes this file once per native claim. Keep the exact published APK installed
+// across those invocations, while clearing all app data before every claim. Reinstalling the
+// same package five times made Android rebuild network state under severe emulator load and
+// could delay an external DNS probe beyond the observation window.
+const apkMarker = '/data/local/tmp/quietwall-apk.sha256';
+let installedChecksum = '';
+let installedPackage = '';
+try { installedChecksum = run('adb', ['shell', 'cat', apkMarker], { capture: true }).trim(); } catch { /* First claim on this clean emulator. */ }
+try { installedPackage = run('adb', ['shell', 'pm', 'path', packageName], { capture: true }).trim(); } catch { /* Package is not installed yet. */ }
+const needsInstall = installedChecksum !== actual || !installedPackage.startsWith('package:');
+if (needsInstall) {
+  run('adb', ['install', '-r', '-t', apk]);
+  run('adb', ['shell', 'sh', '-c', `printf '%s' '${actual}' > ${apkMarker}`]);
+}
 try { run('adb', ['shell', 'pm', 'clear', packageName]); } catch { /* A first install is already clean. */ }
 run('adb', ['shell', 'appops', 'set', packageName, 'ACTIVATE_VPN', 'allow']);
 // GitHub's cold API 35 image performs background dex work under heavy boot load. Compile this
 // exact installed package before instrumentation so the process is not selected for boot-time
 // pressure termination; this does not create or retain application data.
-run('adb', ['shell', 'cmd', 'package', 'compile', '-m', 'speed', '-f', packageName]);
+if (needsInstall) run('adb', ['shell', 'cmd', 'package', 'compile', '-m', 'speed', '-f', packageName]);
 
 const targets = selected ? [selected] : Object.keys(claims);
 for (const claim of targets) {
@@ -108,10 +121,12 @@ for (const claim of targets) {
     const probeNames = claim === 'network-resolver'
       ? [probeDomain]
       : Array.from({ length: claim === 'pause-delay' ? 5 : 3 }, (_, index) => `probe-${index + 1}.${probeDomain}`);
-    const probeOutput = probeNames.map((domain) => {
-      const probe = spawnSync('adb', ['shell', 'ping', '-c', '1', '-W', '2', domain], { cwd: root, encoding: 'utf8' });
-      return `${probe.stdout ?? ''}${probe.stderr ?? ''}`;
-    }).join('\n');
+    // Start one Android shell process for the whole probe set. A cold API 35 image can take
+    // several seconds to schedule each new adb shell process, which needlessly consumed the
+    // instrumentation observation window when every probe launched separately.
+    const probeScript = probeNames.map((domain) => `ping -c 1 -W 2 ${domain}`).join('; ');
+    const probe = spawnSync('adb', ['shell', 'sh', '-c', probeScript], { cwd: root, encoding: 'utf8' });
+    const probeOutput = `${probe.stdout ?? ''}${probe.stderr ?? ''}`;
     if (claim === 'network-resolver') {
       assert.doesNotMatch(probeOutput, /bad address|unknown host|name or service not known|temporary failure in name resolution/i, 'Allowed DNS request did not resolve.');
     } else {

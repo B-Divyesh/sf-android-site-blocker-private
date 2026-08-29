@@ -34,7 +34,7 @@ The test command runs unit, native-contract, service-worker, desktop, mobile, ac
 
 Each public product claim and its clean-state command lives in `.factory/claims.json`.
 Five Android runtime claims require a booted API 35 emulator.
-Each command installs the published APK, clears its data, grants VPN consent, and runs one observable test.
+The runner installs the published APK once, then clears its data before each observable claim test.
 
 ## Android app
 

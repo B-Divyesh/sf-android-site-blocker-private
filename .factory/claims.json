@@ -63,13 +63,6 @@
     "sandbox": "fake dates before, inside, and after overnight and equal-time ranges"
   },
   {
-    "id": "pause-delay",
-    "claim": "The Android app keeps filtering active until the configured pause delay ends.",
-    "where": "focus controls, README",
-    "test": "npm run test:android-runtime -- --claim=pause-delay",
-    "sandbox": "clean emulator; install the published APK, grant VPN consent, observe a blocked reply before expiry and stopped filtering after expiry"
-  },
-  {
     "id": "web-config-only",
     "claim": "The website saves and exports a block list but does not block traffic.",
     "where": "configurator status, limits, terms, README",
@@ -103,5 +96,12 @@
     "where": "limits, terms, README",
     "test": "npm run test:android-runtime -- --claim=filter-boundary",
     "sandbox": "clean emulator; install the published APK and inspect its runtime PackageManager permissions and service authority"
+  },
+  {
+    "id": "pause-delay",
+    "claim": "The Android app keeps filtering active until the configured pause delay ends.",
+    "where": "focus controls, README",
+    "test": "npm run test:android-runtime -- --claim=pause-delay",
+    "sandbox": "clean emulator; install the published APK, grant VPN consent, observe a blocked reply before expiry and stopped filtering after expiry"
   }
 ]

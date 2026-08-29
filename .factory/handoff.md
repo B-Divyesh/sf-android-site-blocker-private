@@ -10,6 +10,7 @@ The round-2 repair:
 - shows all four rules, enabled/paused state, focus hours, and delay within 390 × 844;
 - keeps demo and real IndexedDB databases isolated through reset and exit;
 - replaces five source-regex Android claim commands with clean-emulator tests against the installed public APK;
+- reuses the checksum-verified APK between isolated claim runs and batches each external probe set, avoiding repeated emulator network rebuilds;
 - adds the Android active-network permission required to discover the current resolver;
 - starts the compressed pause clock only after Android exposes Quietwall's DNS path and uses unique DNS probes;
 - removes the unregistered hero transfer sentence and README build-behavior sentence;
@@ -32,7 +33,7 @@ The repaired tree was cloned into a new temporary directory before verification.
 
 ### Android runtime claims
 
-The clean emulator workflow installs `public/downloads/quietwall.apk`, confirms its published checksum, clears app data, grants Android VPN consent, and runs each claim separately.
+The clean emulator workflow installs `public/downloads/quietwall.apk`, confirms its published checksum, and runs each claim separately. It clears app data and grants Android VPN consent before every claim.
 
 - `@claim:android-dns-filter`: a public sample domain matched the saved rule and Android reported Quietwall's local not-found result.
 - `@claim:native-privacy`: the blocked flow added no app UID egress; runtime storage contained settings and no browsing database.
@@ -40,7 +41,7 @@ The clean emulator workflow installs `public/downloads/quietwall.apk`, confirms 
 - `@claim:pause-delay`: the request was blocked before expiry and filtering turned off after expiry.
 - `@claim:filter-boundary`: installed package services use VPN authority and have no device-admin permission or service.
 
-Exact workflow run: <https://github.com/B-Divyesh/sf-android-site-blocker-private/actions/runs/33234447132>
+Exact successful workflow run: pending the final pushed repair commit.
 
 Published APK SHA-256: `6f16c73c3c95722ff8e7bf3fb3a3131c3866d95b69e85bc85d31ce5297045380`.
 
