@@ -48,7 +48,7 @@ try { installedPackage = run('adb', ['shell', 'pm', 'path', packageName], { capt
 const needsInstall = installedChecksum !== actual || !installedPackage.startsWith('package:');
 if (needsInstall) {
   run('adb', ['install', '-r', '-t', apk]);
-  run('adb', ['shell', 'sh', '-c', `printf '%s' '${actual}' > ${apkMarker}`]);
+  run('adb', ['shell', `printf '%s' '${actual}' > ${apkMarker}`]);
 }
 try { run('adb', ['shell', 'pm', 'clear', packageName]); } catch { /* A first install is already clean. */ }
 run('adb', ['shell', 'appops', 'set', packageName, 'ACTIVATE_VPN', 'allow']);
@@ -140,7 +140,7 @@ for (const claim of targets) {
     // several seconds to schedule each new adb shell process, which needlessly consumed the
     // instrumentation observation window when every probe launched separately.
     const probeScript = probeNames.map((domain) => `ping -c 1 -W 2 ${domain}`).join('; ');
-    const probe = spawnSync('adb', ['shell', 'sh', '-c', probeScript], { cwd: root, encoding: 'utf8' });
+    const probe = spawnSync('adb', ['shell', probeScript], { cwd: root, encoding: 'utf8' });
     const probeOutput = `${probe.stdout ?? ''}${probe.stderr ?? ''}`;
     if (claim === 'network-resolver') {
       assert.doesNotMatch(probeOutput, /bad address|unknown host|name or service not known|temporary failure in name resolution/i, 'Allowed DNS request did not resolve.');
