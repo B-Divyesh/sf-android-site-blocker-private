@@ -43,12 +43,12 @@ assert.equal(actual, expected, 'The published APK must match its public checksum
 const apkMarker = '/data/local/tmp/quietwall-apk.sha256';
 let installedChecksum = '';
 let installedPackage = '';
-try { installedChecksum = run('adb', ['shell', 'cat', apkMarker], { capture: true }).trim(); } catch { /* First claim on this clean emulator. */ }
+try { installedChecksum = run('adb', ['shell', 'cat', apkMarker], { capture: true }).trim().split(/\s+/)[0]; } catch { /* First claim on this clean emulator. */ }
 try { installedPackage = run('adb', ['shell', 'pm', 'path', packageName], { capture: true }).trim(); } catch { /* Package is not installed yet. */ }
 const needsInstall = installedChecksum !== actual || !installedPackage.startsWith('package:');
 if (needsInstall) {
   run('adb', ['install', '-r', '-t', apk]);
-  run('adb', ['shell', `printf '%s' '${actual}' > ${apkMarker}`]);
+  run('adb', ['push', checksumFile, apkMarker]);
 }
 try { run('adb', ['shell', 'pm', 'clear', packageName]); } catch { /* A first install is already clean. */ }
 run('adb', ['shell', 'appops', 'set', packageName, 'ACTIVATE_VPN', 'allow']);
