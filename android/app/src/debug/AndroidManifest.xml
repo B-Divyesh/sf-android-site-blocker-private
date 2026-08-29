@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <instrumentation
+        android:name=".ClaimInstrumentation"
+        android:functionalTest="true"
+        android:handleProfiling="false"
+        android:label="Quietwall runtime claims"
+        android:targetPackage="in.sociobot.androidsiteblockerprivate" />
+</manifest>
