@@ -57,6 +57,21 @@ run('adb', ['shell', 'appops', 'set', packageName, 'ACTIVATE_VPN', 'allow']);
 // pressure termination; this does not create or retain application data.
 if (needsInstall) run('adb', ['shell', 'cmd', 'package', 'compile', '-m', 'speed', '-f', packageName]);
 
+if (selected === 'network-resolver') {
+  let networkReady = false;
+  const networkDeadline = Date.now() + 60_000;
+  while (Date.now() < networkDeadline) {
+    const check = spawnSync('adb', ['shell', 'ping', '-c', '1', '-W', '2', 'android.com'], { cwd: root, encoding: 'utf8' });
+    const checkOutput = `${check.stdout ?? ''}${check.stderr ?? ''}`;
+    if (!/bad address|unknown host|name or service not known|temporary failure in name resolution/i.test(checkOutput)) {
+      networkReady = true;
+      break;
+    }
+    await new Promise((resolveNetwork) => setTimeout(resolveNetwork, 1000));
+  }
+  assert.equal(networkReady, true, 'The clean emulator did not expose its underlying DNS service before the resolver claim.');
+}
+
 const targets = selected ? [selected] : Object.keys(claims);
 for (const claim of targets) {
   const probeDomain = claim === 'android-dns-filter'

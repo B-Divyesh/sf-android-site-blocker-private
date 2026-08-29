@@ -66,7 +66,7 @@ Evidence:
 - `.factory/evidence/live-polish-2/demo-first-viewport.png`
 
 Local Lighthouse: 100 performance, 100 accessibility, 100 best practices, 100 SEO; LCP 1.2 s; CLS 0.
-Live Lighthouse: 100 performance, 100 accessibility, 100 best practices, 100 SEO; LCP 0.9 s; CLS 0.
+Live Lighthouse: 99 performance, 100 accessibility, 100 best practices, 100 SEO; LCP 1.0 s; CLS 0; 30 KiB transferred.
 
 Production bundles: main JavaScript 32.47 kB raw / 11.80 kB gzip; CSS 17.26 kB raw / 4.53 kB gzip. No font files, third-party scripts, analytics, or runtime API are shipped.
 

@@ -70,6 +70,13 @@
     "sandbox": "fresh real browser context; save empty list and assert truthful status and absence of armed state"
   },
   {
+    "id": "network-resolver",
+    "claim": "Allowed DNS requests go to the active network resolver outside the VPN loop.",
+    "where": "limits, privacy, README",
+    "test": "npm run test:android-runtime -- --claim=network-resolver",
+    "sandbox": "clean online emulator; install the published APK, record Android's non-VPN resolver, and observe an allowed DNS response through the VPN"
+  },
+  {
     "id": "android-dns-filter",
     "claim": "After VPN consent, the Android app returns a local not-found response for matching standard DNS requests.",
     "where": "headline, walkthrough, limits, README",
@@ -82,13 +89,6 @@
     "where": "privacy, README",
     "test": "npm run test:android-runtime -- --claim=native-privacy",
     "sandbox": "clean emulator; install the published APK, record UID egress around a blocked request, and inspect its runtime databases and private settings keys"
-  },
-  {
-    "id": "network-resolver",
-    "claim": "Allowed DNS requests go to the active network resolver outside the VPN loop.",
-    "where": "limits, privacy, README",
-    "test": "npm run test:android-runtime -- --claim=network-resolver",
-    "sandbox": "clean online emulator; install the published APK, record Android's non-VPN resolver, and observe an allowed DNS response through the VPN"
   },
   {
     "id": "filter-boundary",
