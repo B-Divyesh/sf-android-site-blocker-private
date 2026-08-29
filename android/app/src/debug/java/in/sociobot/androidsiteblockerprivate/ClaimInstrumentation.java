@@ -14,11 +14,9 @@ import android.net.NetworkCapabilities;
 import android.net.TrafficStats;
 import android.net.VpnService;
 import android.os.Bundle;
-import android.os.ParcelFileDescriptor;
 import android.util.Log;
 import android.view.accessibility.AccessibilityNodeInfo;
 
-import java.io.FileInputStream;
 import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -159,16 +157,6 @@ public final class ClaimInstrumentation extends Instrumentation {
     }
 
     private void ensureVpnConsent(Context context) throws Exception {
-        if (VpnService.prepare(context) == null) return;
-
-        // Ask Android through the real system consent screen. The command first mirrors what a
-        // device lab does for repeatable clean profiles; the UI path remains the fallback and proof.
-        try (ParcelFileDescriptor descriptor = getUiAutomation().executeShellCommand("appops set " + PACKAGE + " ACTIVATE_VPN allow");
-             FileInputStream output = new FileInputStream(descriptor.getFileDescriptor())) {
-            byte[] buffer = new byte[256];
-            while (output.read(buffer) >= 0) { /* Drain command output before checking the result. */ }
-        }
-        Thread.sleep(250);
         if (VpnService.prepare(context) == null) return;
 
         Intent consent = VpnService.prepare(context);
