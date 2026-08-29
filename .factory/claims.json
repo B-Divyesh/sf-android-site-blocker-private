@@ -81,7 +81,7 @@
     "claim": "After VPN consent, the Android app returns a local not-found response for matching standard DNS requests.",
     "where": "headline, walkthrough, limits, README",
     "test": "npm run test:android-runtime -- --claim=android-dns-filter",
-    "sandbox": "clean emulator; install the published APK, grant VPN consent, send blocked.example through its VPN DNS address, and assert an NXDOMAIN response"
+    "sandbox": "clean emulator; install the published APK, grant VPN consent, resolve a public sample domain through Android, and assert the VPN returns a not-found result"
   },
   {
     "id": "native-privacy",
