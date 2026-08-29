@@ -7,7 +7,7 @@ import test from 'node:test';
 const root = new URL('../', import.meta.url);
 const apkPath = new URL('../public/downloads/quietwall.apk', import.meta.url).pathname;
 
-test('@claim:android-dns-filter ships the tested local VPN, matcher, DNS response, and consent path', async () => {
+test('the APK packages the local VPN, matcher, DNS response, and consent path', async () => {
   const service = await readFile(new URL('../android/app/src/main/java/in/sociobot/androidsiteblockerprivate/QuietwallVpnService.java', import.meta.url), 'utf8');
   const plugin = await readFile(new URL('../android/app/src/main/java/in/sociobot/androidsiteblockerprivate/QuietwallVpnPlugin.java', import.meta.url), 'utf8');
   const matcherTest = await readFile(new URL('../android/app/src/test/java/in/sociobot/androidsiteblockerprivate/RuleMatcherTest.java', import.meta.url), 'utf8');
@@ -36,7 +36,7 @@ test('@claim:apk-signature verifies the published package signature and checksum
   assert.equal(createHash('sha256').update(apk).digest('hex'), expected);
 });
 
-test('@claim:native-privacy finds no analytics client, remote API, or browsing-log store in Android source', async () => {
+test('Android dependencies contain no analytics client, remote API, or browsing-log store', async () => {
   const javaDir = new URL('../android/app/src/main/java/in/sociobot/androidsiteblockerprivate/', import.meta.url);
   const sources = await Promise.all((await readdir(javaDir)).filter((name) => name.endsWith('.java')).map((name) => readFile(new URL(name, javaDir), 'utf8')));
   const combined = sources.join('\n');
@@ -46,7 +46,7 @@ test('@claim:native-privacy finds no analytics client, remote API, or browsing-l
   void root;
 });
 
-test('@claim:network-resolver sends allowed DNS only to the active network resolver outside the VPN loop', async () => {
+test('the resolver implementation excludes hard-coded external resolvers', async () => {
   const service = await readFile(new URL('../android/app/src/main/java/in/sociobot/androidsiteblockerprivate/QuietwallVpnService.java', import.meta.url), 'utf8');
   assert.match(service, /getDnsServers\(\)/);
   assert.match(service, /protect\(socket\)/);
@@ -54,7 +54,7 @@ test('@claim:network-resolver sends allowed DNS only to the active network resol
   assert.doesNotMatch(service, /8\.8\.8\.8|1\.1\.1\.1|https?:\/\//);
 });
 
-test('@claim:filter-boundary confirms the app filters UDP DNS only and has no device-admin enforcement', async () => {
+test('the package source limits enforcement to UDP DNS without device-admin permissions', async () => {
   const service = await readFile(new URL('../android/app/src/main/java/in/sociobot/androidsiteblockerprivate/QuietwallVpnService.java', import.meta.url), 'utf8');
   const packet = await readFile(new URL('../android/app/src/main/java/in/sociobot/androidsiteblockerprivate/IpPacket.java', import.meta.url), 'utf8');
   const manifest = await readFile(new URL('../android/app/src/main/AndroidManifest.xml', import.meta.url), 'utf8');
@@ -63,7 +63,7 @@ test('@claim:filter-boundary confirms the app filters UDP DNS only and has no de
   assert.doesNotMatch(manifest, /DEVICE_ADMIN|BIND_DEVICE_ADMIN/);
 });
 
-test('@claim:pause-delay keeps filtering active until the configured pause time', async () => {
+test('the pause implementation stores its expiry and schedules an Android alarm', async () => {
   const plugin = await readFile(new URL('../android/app/src/main/java/in/sociobot/androidsiteblockerprivate/QuietwallVpnPlugin.java', import.meta.url), 'utf8');
   const policy = await readFile(new URL('../android/app/src/main/java/in/sociobot/androidsiteblockerprivate/RuleStore.java', import.meta.url), 'utf8');
   const policyTest = await readFile(new URL('../android/app/src/test/java/in/sociobot/androidsiteblockerprivate/RuleStorePolicyTest.java', import.meta.url), 'utf8');

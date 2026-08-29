@@ -7,8 +7,8 @@ test('@claim:demo-isolation seeds, resets, and separates sample data from a real
   await page.getByRole('button', { name: 'Add domain' }).click();
   await page.goto('/?demo=1');
   await expect(page.getByText('Demo — sample data, nothing is saved to your real list')).toBeVisible();
-  await expect(page.getByText('news.example.com', { exact: true })).toBeVisible();
-  await expect(page.getByText('forum.example', { exact: true })).toBeVisible();
+  await expect(page.locator('.rule-list').getByText('news.example.com', { exact: true })).toBeVisible();
+  await expect(page.locator('.rule-list').getByText('forum.example', { exact: true })).toBeVisible();
   await page.getByLabel('Domain to block').fill('temporary.example');
   await page.getByRole('button', { name: 'Add domain' }).click();
   await page.getByRole('button', { name: 'Reset demo' }).click();
@@ -40,8 +40,24 @@ test('@claim:offline-demo reloads the sample after the network is disabled', asy
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Block websites across your Android device' })).toBeVisible();
-  await expect(page.getByText('news.example.com', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Try a sample Android block list' })).toBeVisible();
+  await expect(page.locator('.demo-snapshot').getByText('news.example.com', { exact: true })).toBeVisible();
+});
+
+test('one click opens visible sample data in the first mobile viewport', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-390');
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Try it with sample data' }).click();
+  await expect(page).toHaveURL('/?demo=1');
+  await expect(page.getByText('Demo — sample data, nothing is saved to your real list')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Try a sample Android block list' })).toBeFocused();
+  await expect(page.getByText('Focus hours 21:30–07:00 · Pause delay 15 minutes')).toBeVisible();
+  await expect(page.locator('.demo-snapshot').getByText('news.example.com', { exact: true })).toBeVisible();
+  await expect(page.locator('.demo-snapshot').getByText('forum.example', { exact: true })).toBeVisible();
+  await expect(page.locator('.demo-snapshot').getByText('Paused', { exact: true })).toBeVisible();
+  const snapshot = await page.locator('.demo-snapshot').boundingBox();
+  expect(snapshot).not.toBeNull();
+  expect(snapshot!.y + snapshot!.height).toBeLessThanOrEqual(844);
 });
 
 test('@claim:json-portability exports the sample and imports a versioned block list', async ({ page }) => {
@@ -60,7 +76,7 @@ test('@claim:json-portability exports the sample and imports a versioned block l
   await page.getByRole('button', { name: 'Import block list' }).click();
   const chooser = await chooserPromise;
   await chooser.setFiles({ name: 'quietwall.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ version: 1, rules: [{ pattern: 'imported.example', enabled: true }] })) });
-  await expect(page.getByText('imported.example', { exact: true })).toBeVisible();
+  await expect(page.locator('.rule-list').getByText('imported.example', { exact: true })).toBeVisible();
 });
 
 test('@claim:free-no-account exposes the MIT license with no account or payment path', async ({ page, request }) => {

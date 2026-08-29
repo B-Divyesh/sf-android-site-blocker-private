@@ -1,1 +1,1 @@
-Block chosen websites across Android with a local DNS filter and a private, offline block list.
+Block chosen websites across Android with a private list stored on your device.

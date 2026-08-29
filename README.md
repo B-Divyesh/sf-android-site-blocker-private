@@ -33,6 +33,8 @@ npm run build
 The test command runs unit, native-contract, service-worker, desktop, mobile, accessibility, privacy, and offline checks. The build command writes the static site to `dist/`.
 
 Each public product claim and its clean-state command lives in `.factory/claims.json`.
+Five Android runtime claims require a booted API 35 emulator.
+Each command installs the published APK, clears its data, grants VPN consent, and runs one observable test.
 
 ## Android app
 
@@ -49,8 +51,6 @@ Allowed DNS requests use the active network resolver outside the VPN loop. Quiet
 Quietwall filters standard UDP DNS only. Encrypted DNS, direct IP traffic, another VPN, or uninstalling the app can bypass it.
 
 The website provides the signed preview APK and its SHA-256 checksum. The preview uses Android’s generated debug certificate, not a release-store key.
-
-The native sync removes the website-only download directory so an APK never embeds an older APK.
 
 To rebuild it, use JDK 21 and Android SDK Platform 35 with Build Tools 35.0.0.
 

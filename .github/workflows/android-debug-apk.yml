@@ -62,12 +62,17 @@ jobs:
           cache: gradle
       - uses: android-actions/setup-android@v3
       - name: Install web dependencies and sync Android
-        run: npm ci && npm run cap:sync
-      - name: Test a blocked DNS request through Android VpnService
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npm run cap:sync
+      - name: Run every claim against clean browser and Android sandboxes
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
           arch: x86_64
           profile: pixel_6
           disable-animations: true
-          script: cd android && ./gradlew :app:installDebug :app:installDebugAndroidTest --no-daemon && adb shell appops set in.sociobot.androidsiteblockerprivate ACTIVATE_VPN allow && adb shell am instrument -w in.sociobot.androidsiteblockerprivate.test/androidx.test.runner.AndroidJUnitRunner
+          script: |
+            adb shell settings put global private_dns_mode off
+            node scripts/run-claim-registry.mjs

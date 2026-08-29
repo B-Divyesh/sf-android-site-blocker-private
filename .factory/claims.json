@@ -66,8 +66,8 @@
     "id": "pause-delay",
     "claim": "The Android app keeps filtering active until the configured pause delay ends.",
     "where": "focus controls, README",
-    "test": "node --test --test-name-pattern=@claim:pause-delay scripts/native-claims.test.mjs",
-    "sandbox": "inspect tested time boundary and Android alarm scheduling source"
+    "test": "npm run test:android-runtime -- --claim=pause-delay",
+    "sandbox": "clean emulator; install the published APK, grant VPN consent, observe a blocked reply before expiry and stopped filtering after expiry"
   },
   {
     "id": "web-config-only",
@@ -80,28 +80,28 @@
     "id": "android-dns-filter",
     "claim": "After VPN consent, the Android app returns a local not-found response for matching standard DNS requests.",
     "where": "headline, walkthrough, limits, README",
-    "test": "node --test --test-name-pattern=@claim:android-dns-filter scripts/native-claims.test.mjs",
-    "sandbox": "inspect native VPN, consent, matcher, packet tests, and the published APK classes"
+    "test": "npm run test:android-runtime -- --claim=android-dns-filter",
+    "sandbox": "clean emulator; install the published APK, grant VPN consent, send blocked.example through its VPN DNS address, and assert an NXDOMAIN response"
   },
   {
     "id": "native-privacy",
-    "claim": "The Android app has no analytics client, remote API, or browsing-log store.",
+    "claim": "A locally blocked request creates no app egress, and the Android app stores settings rather than browsing history.",
     "where": "privacy, README",
-    "test": "node --test --test-name-pattern=@claim:native-privacy scripts/native-claims.test.mjs",
-    "sandbox": "scan all native source and verify private settings storage"
+    "test": "npm run test:android-runtime -- --claim=native-privacy",
+    "sandbox": "clean emulator; install the published APK, record UID egress around a blocked request, and inspect its runtime databases and private settings keys"
   },
   {
     "id": "network-resolver",
     "claim": "Allowed DNS requests go to the active network resolver outside the VPN loop.",
     "where": "limits, privacy, README",
-    "test": "node --test --test-name-pattern=@claim:network-resolver scripts/native-claims.test.mjs",
-    "sandbox": "inspect resolver discovery, protected socket use, destination port, and absence of hard-coded resolvers"
+    "test": "npm run test:android-runtime -- --claim=network-resolver",
+    "sandbox": "clean online emulator; install the published APK, record Android's non-VPN resolver, and observe an allowed DNS response through the VPN"
   },
   {
     "id": "filter-boundary",
     "claim": "Quietwall filters standard UDP DNS only and does not provide device-admin enforcement.",
     "where": "limits, terms, README",
-    "test": "node --test --test-name-pattern=@claim:filter-boundary scripts/native-claims.test.mjs",
-    "sandbox": "inspect packet boundary and Android manifest permissions"
+    "test": "npm run test:android-runtime -- --claim=filter-boundary",
+    "sandbox": "clean emulator; install the published APK and inspect its runtime PackageManager permissions and service authority"
   }
 ]
