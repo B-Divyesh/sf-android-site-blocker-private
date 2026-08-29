@@ -59,7 +59,7 @@ if (needsInstall) run('adb', ['shell', 'cmd', 'package', 'compile', '-m', 'speed
 
 if (selected === 'network-resolver') {
   let networkReady = false;
-  const networkDeadline = Date.now() + 60_000;
+  const networkDeadline = Date.now() + 180_000;
   while (Date.now() < networkDeadline) {
     const check = spawnSync('adb', ['shell', 'ping', '-c', '1', '-W', '2', 'android.com'], { cwd: root, encoding: 'utf8' });
     const checkOutput = `${check.stdout ?? ''}${check.stderr ?? ''}`;

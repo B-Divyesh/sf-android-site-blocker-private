@@ -11,6 +11,7 @@ The round-2 repair:
 - keeps demo and real IndexedDB databases isolated through reset and exit;
 - replaces five source-regex Android claim commands with clean-emulator tests against the installed public APK;
 - reuses the checksum-verified APK between isolated claim runs and batches each external probe set, avoiding repeated emulator network rebuilds;
+- gives the API-35 lab an explicit DNS service, then verifies that Quietwall discovers and uses Android's advertised resolver;
 - adds the Android active-network permission required to discover the current resolver;
 - starts the compressed pause clock only after Android exposes Quietwall's DNS path and uses unique DNS probes;
 - removes the unregistered hero transfer sentence and README build-behavior sentence;
