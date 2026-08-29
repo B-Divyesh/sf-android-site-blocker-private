@@ -20,7 +20,7 @@ The complete finding-to-fix-to-evidence map is in `.factory/polish-2.md`.
 
 ### Clean checkout
 
-Commit `ac7bf0a` was cloned into a new temporary directory.
+The repaired tree was cloned into a new temporary directory before verification.
 
 - `npm ci`: 172 packages installed; 0 vulnerabilities.
 - `npm test`: 12 Vitest tests, 6 native package-contract tests, 1 generated-precache test, and 24 Playwright tests passed. Two project-specific tests skipped by design.
@@ -32,9 +32,9 @@ Commit `ac7bf0a` was cloned into a new temporary directory.
 
 The clean emulator workflow installs `public/downloads/quietwall.apk`, confirms its published checksum, clears app data, grants Android VPN consent, and runs each claim separately.
 
-- `@claim:android-dns-filter`: matching `blocked.example` returned NXDOMAIN with its transaction id intact.
+- `@claim:android-dns-filter`: a public sample domain matched the saved rule and Android reported Quietwall's local not-found result.
 - `@claim:native-privacy`: the blocked flow added no app UID egress; runtime storage contained settings and no browsing database.
-- `@claim:network-resolver`: Android exposed a non-VPN resolver and an allowed query returned through Quietwall without local NXDOMAIN.
+- `@claim:network-resolver`: Android exposed a non-VPN resolver and an allowed public domain resolved through Quietwall.
 - `@claim:pause-delay`: the request was blocked before expiry and filtering turned off after expiry.
 - `@claim:filter-boundary`: installed package services use VPN authority and have no device-admin permission or service.
 
