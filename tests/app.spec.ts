@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { readFileSync } from 'node:fs';
 
 test('@claim:demo-isolation seeds, resets, and separates sample data from a real list', async ({ page }) => {
   await page.goto('/');
@@ -157,7 +158,7 @@ test('legal routes, sitemap, and the product 404 deployment rule are real static
   const sitemap = await (await request.get('/sitemap.xml')).text();
   expect(sitemap).toContain('https://android-site-blocker-private.sociobot.in/privacy/');
   expect(sitemap).toContain('https://android-site-blocker-private.sociobot.in/terms/');
-  const config = await (await request.get('/staticwebapp.config.json')).json();
+  const config = JSON.parse(readFileSync(new URL('../public/staticwebapp.config.json', import.meta.url), 'utf8'));
   expect(config.responseOverrides['404']).toEqual({ rewrite: '/404.html', statusCode: 404 });
 });
 
