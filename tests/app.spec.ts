@@ -5,6 +5,7 @@ test('@claim:demo-isolation seeds, resets, and separates sample data from a real
   await page.goto('/');
   await page.getByLabel('Domain to block').fill('personal.example');
   await page.getByRole('button', { name: 'Add domain' }).click();
+  await expect(page.getByText('personal.example', { exact: true })).toBeVisible();
   await page.goto('/?demo=1');
   await expect(page.getByText('Demo — sample data, nothing is saved to your real list')).toBeVisible();
   await expect(page.locator('.rule-list').getByText('news.example.com', { exact: true })).toBeVisible();
