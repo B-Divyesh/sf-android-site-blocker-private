@@ -50,10 +50,14 @@ test('Android dependencies contain no analytics client, remote API, or browsing-
 
 test('the resolver implementation excludes hard-coded external resolvers', async () => {
   const service = await readFile(new URL('../android/app/src/main/java/in/sociobot/androidsiteblockerprivate/QuietwallVpnService.java', import.meta.url), 'utf8');
+  const runtime = await readFile(new URL('../android/app/src/debug/java/in/sociobot/androidsiteblockerprivate/ClaimInstrumentation.java', import.meta.url), 'utf8');
   assert.match(service, /getDnsServers\(\)/);
   assert.match(service, /protect\(socket\)/);
   assert.match(service, /socket\.connect\(resolver, 53\)/);
   assert.doesNotMatch(service, /8\.8\.8\.8|1\.1\.1\.1|https?:\/\//);
+  assert.match(runtime, /getActiveNetwork\(\)/);
+  assert.match(runtime, /hasTransport\(NetworkCapabilities\.TRANSPORT_VPN\)/);
+  assert.match(runtime, /10\.99\.0\.2/);
 });
 
 test('the package source limits enforcement to UDP DNS without device-admin permissions', async () => {

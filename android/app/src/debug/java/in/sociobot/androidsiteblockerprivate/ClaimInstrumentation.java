@@ -148,25 +148,19 @@ public final class ClaimInstrumentation extends Instrumentation {
         RuleStore.save(context, true, rules, false, "22:00", "07:00", unlockAt);
         QuietwallVpnService.start(context);
         ConnectivityManager manager = context.getSystemService(ConnectivityManager.class);
-        long deadline = System.currentTimeMillis() + 15_000;
+        long deadline = System.currentTimeMillis() + 30_000;
         while (System.currentTimeMillis() < deadline) {
-            if (manager != null) for (Network network : manager.getAllNetworks()) {
-                NetworkCapabilities capabilities = manager.getNetworkCapabilities(network);
-                if (capabilities == null || !capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) continue;
-                LinkProperties properties = manager.getLinkProperties(network);
-                if (properties == null) continue;
+            Network active = manager == null ? null : manager.getActiveNetwork();
+            NetworkCapabilities capabilities = active == null ? null : manager.getNetworkCapabilities(active);
+            LinkProperties properties = active == null ? null : manager.getLinkProperties(active);
+            if (capabilities != null && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN) && properties != null) {
                 for (InetAddress resolver : properties.getDnsServers()) {
-                    if ("10.99.0.2".equals(resolver.getHostAddress())) {
-                        // Android publishes the VPN transport before the resolver switch has
-                        // propagated to netd. Give that now-observed DNS path one scheduling turn.
-                        Thread.sleep(1000);
-                        return;
-                    }
+                    if ("10.99.0.2".equals(resolver.getHostAddress())) return;
                 }
             }
             Thread.sleep(100);
         }
-        throw new AssertionError("Android did not expose the Quietwall VPN network.");
+        throw new AssertionError("Android did not make the Quietwall VPN its active DNS path.");
     }
 
     private static void awaitExternalProbe(String id, long milliseconds) throws Exception {
