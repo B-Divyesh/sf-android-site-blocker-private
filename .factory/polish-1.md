@@ -21,7 +21,7 @@ Automated evidence names below refer to `tests/app.spec.ts`, `src/domain.test.ts
 | F-1-4 | Added styled `404.html`, shared header/footer, same-origin assets, and Azure `responseOverrides` preserving status 404. | route/axe test on `/does-not-exist`; `404-mobile.png`; live 404 status check. |
 | F-1-5 | Added `.factory/claims.json` with one tagged test and clean-state command for each retained public claim. | 15 registry commands passed independently and in the clean-clone run. |
 | F-1-6 | Replaced false “no network calls” metadata with precise local DNS wording. | route metadata test; direct `<meta>` inspection. |
-| F-1-7 | Rewrote the claim plainly and tied it to native VPN, DNS response, matcher, consent, and APK evidence. | `@claim:android-dns-filter`. |
+| F-1-7 | Rewrote the claim plainly and tied it to native VPN, DNS response, matcher, consent, APK, and emulator tunnel evidence. | `@claim:android-dns-filter`; `QuietwallVpnInstrumentedTest`. |
 | F-1-8 | Split account, subscription, privacy, and network behavior into precise registered claims. | `@claim:free-no-account`, `@claim:native-privacy`, `@claim:network-resolver`. |
 | F-1-9 | Replaced loop metaphor with a precise local-list statement. | `@claim:browser-privacy`; request log. |
 | F-1-10 | Rewrote bare-domain help with an example and tested apex plus nested names. | `@claim:domain-matching`. |
@@ -31,7 +31,7 @@ Automated evidence names below refer to `tests/app.spec.ts`, `src/domain.test.ts
 | F-1-14 | Removed the isolated assertion; bypass limits are grouped and bounded to non-device-admin behavior. | `@claim:filter-boundary`. |
 | F-1-15 | Reworded overnight behavior as “may cross midnight” and tested before, during, and after. | `@claim:focus-hours`. |
 | F-1-16 | Reworded equal times as all-day behavior and tested it. | `@claim:focus-hours`. |
-| F-1-17 | Replaced jargon with the exact standard-DNS behavior and verified matcher/NXDOMAIN paths. | `@claim:android-dns-filter`. |
+| F-1-17 | Replaced jargon with the exact standard-DNS behavior and verified NXDOMAIN through the Android VPN tunnel. | `@claim:android-dns-filter`; `QuietwallVpnInstrumentedTest`. |
 | F-1-18 | Removed the standalone unverified one-VPN assertion from landing copy. | Copy audit; no old sentence in rendered pages. |
 | F-1-19 | Reduced the limits to concrete filter boundaries and lack of device-admin enforcement. | `@claim:filter-boundary`. |
 | F-1-20 | Replaced the broad claim with tested absence of analytics clients, APIs, and log storage. | `@claim:native-privacy`, `@claim:browser-privacy`. |
