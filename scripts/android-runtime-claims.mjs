@@ -39,36 +39,57 @@ assert.equal(actual, expected, 'The published APK must match its public checksum
 run('adb', ['install', '-r', '-t', apk]);
 try { run('adb', ['shell', 'pm', 'clear', packageName]); } catch { /* A first install is already clean. */ }
 run('adb', ['shell', 'appops', 'set', packageName, 'ACTIVATE_VPN', 'allow']);
+// GitHub's cold API 35 image performs background dex work under heavy boot load. Compile this
+// exact installed package before instrumentation so the process is not selected for boot-time
+// pressure termination; this does not create or retain application data.
+run('adb', ['shell', 'cmd', 'package', 'compile', '-m', 'speed', '-f', packageName]);
 
 const targets = selected ? [selected] : Object.keys(claims);
 for (const claim of targets) {
-  run('adb', ['logcat', '-c']);
-  const child = spawn('adb', ['shell', 'am', 'instrument', '-w', '-r', '-e', 'claim', claim, runner], { cwd: root });
-  let output = '';
+  let child;
+  let childDone;
   let childExit;
-  child.stdout.setEncoding('utf8');
-  child.stderr.setEncoding('utf8');
-  child.stdout.on('data', (chunk) => { output += chunk; });
-  child.stderr.on('data', (chunk) => { output += chunk; });
-  const childDone = new Promise((resolveExit) => child.on('close', (code) => { childExit = code; resolveExit(code); }));
+  let output = '';
   if (claim !== 'filter-boundary') {
     const ready = `READY:${claim}`;
-    // A freshly booted API 35 emulator may spend close to a minute compiling and starting the
-    // first installed process. This remains a readiness bound, not the claim's result timeout.
-    const deadline = Date.now() + 120_000;
     let readyLogs = '';
-    while (Date.now() < deadline) {
-      readyLogs = run('adb', ['logcat', '-d', '-s', 'QuietwallClaim:I'], { capture: true });
-      if (readyLogs.includes(ready) || childExit !== undefined) break;
-      await new Promise((resolveReady) => setTimeout(resolveReady, 250));
-    }
-    if (!readyLogs.includes(ready)) {
-      process.stderr.write(output);
-      process.stderr.write(run('adb', ['logcat', '-d', '-t', '500'], { capture: true }));
+    for (let attempt = 1; attempt <= 2; attempt += 1) {
+      run('adb', ['logcat', '-c']);
+      output = '';
+      childExit = undefined;
+      child = spawn('adb', ['shell', 'am', 'instrument', '-w', '-r', '-e', 'claim', claim, runner], { cwd: root });
+      child.stdout.setEncoding('utf8');
+      child.stderr.setEncoding('utf8');
+      child.stdout.on('data', (chunk) => { output += chunk; });
+      child.stderr.on('data', (chunk) => { output += chunk; });
+      childDone = new Promise((resolveExit) => child.on('close', (code) => { childExit = code; resolveExit(code); }));
+
+      // A freshly booted API 35 emulator may spend close to a minute compiling and starting the
+      // first installed process. This remains a readiness bound, not the claim's result timeout.
+      const deadline = Date.now() + 120_000;
+      while (Date.now() < deadline) {
+        readyLogs = run('adb', ['logcat', '-d', '-s', 'QuietwallClaim:I'], { capture: true });
+        if (readyLogs.includes(ready) || childExit !== undefined) break;
+        await new Promise((resolveReady) => setTimeout(resolveReady, 250));
+      }
+      if (readyLogs.includes(ready)) break;
+
       if (childExit === undefined) {
         run('adb', ['shell', 'am', 'force-stop', packageName]);
         await childDone;
       }
+      const preReadyCrash = /Process crashed|INSTRUMENTATION_FAILED|shortMsg=/i.test(output);
+      if (!preReadyCrash || attempt === 2) break;
+
+      process.stderr.write(`Android killed the ${claim} instrumentation process before readiness; retrying once after package compilation.\n`);
+      run('adb', ['shell', 'pm', 'clear', packageName]);
+      run('adb', ['shell', 'appops', 'set', packageName, 'ACTIVATE_VPN', 'allow']);
+      run('adb', ['shell', 'cmd', 'package', 'compile', '-m', 'speed', '-f', packageName]);
+      await new Promise((resolveRetry) => setTimeout(resolveRetry, 5000));
+    }
+    if (!readyLogs.includes(ready)) {
+      process.stderr.write(output);
+      process.stderr.write(run('adb', ['logcat', '-d', '-t', '500'], { capture: true }));
     }
     assert.match(readyLogs, new RegExp(ready), `Android runtime claim ${claim} did not become ready.`);
 
@@ -84,6 +105,14 @@ for (const claim of targets) {
       await new Promise((resolveExpiry) => setTimeout(resolveExpiry, 30_500));
       spawnSync('adb', ['shell', 'ping', '-c', '1', '-W', '2', domain], { cwd: root, encoding: 'utf8' });
     }
+  } else {
+    run('adb', ['logcat', '-c']);
+    child = spawn('adb', ['shell', 'am', 'instrument', '-w', '-r', '-e', 'claim', claim, runner], { cwd: root });
+    child.stdout.setEncoding('utf8');
+    child.stderr.setEncoding('utf8');
+    child.stdout.on('data', (chunk) => { output += chunk; });
+    child.stderr.on('data', (chunk) => { output += chunk; });
+    childDone = new Promise((resolveExit) => child.on('close', (code) => { childExit = code; resolveExit(code); }));
   }
 
   const exitCode = await childDone;
