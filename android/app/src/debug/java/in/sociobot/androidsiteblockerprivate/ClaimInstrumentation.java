@@ -110,9 +110,12 @@ public final class ClaimInstrumentation extends Instrumentation {
     private void pauseClaim(Context context) throws Exception {
         ensureVpnConsent(context);
         QuietwallVpnService.resetTestObservations();
-        startVpn(context, Arrays.asList("example.net"), System.currentTimeMillis() + 8_000);
+        // Start the tunnel before starting the compressed test timer. A cold emulator can take
+        // well beyond the real eight-second test window to expose its first VPN network.
+        startVpn(context, Arrays.asList("example.net"), 0);
+        RuleStore.save(context, true, Arrays.asList("example.net"), false, "22:00", "07:00", System.currentTimeMillis() + 30_000);
         require(RuleStore.isUserEnabled(context), "Filtering stopped before expiry.");
-        awaitExternalProbe("pause-delay", 12_000);
+        awaitExternalProbe("pause-delay", 45_000);
         require(QuietwallVpnService.testBlockedRequests > 0, "The request was not blocked before expiry.");
         long deadline = System.currentTimeMillis() + 3000;
         while (RuleStore.isUserEnabled(context) && System.currentTimeMillis() < deadline) Thread.sleep(100);

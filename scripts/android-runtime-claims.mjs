@@ -81,7 +81,7 @@ for (const claim of targets) {
       assert.match(probeOutput, /bad address|unknown host|name or service not known|temporary failure in name resolution/i, 'Matching DNS request did not return a not-found result.');
     }
     if (claim === 'pause-delay') {
-      await new Promise((resolveExpiry) => setTimeout(resolveExpiry, 8_500));
+      await new Promise((resolveExpiry) => setTimeout(resolveExpiry, 30_500));
       spawnSync('adb', ['shell', 'ping', '-c', '1', '-W', '2', domain], { cwd: root, encoding: 'utf8' });
     }
   }
