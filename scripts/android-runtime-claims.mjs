@@ -105,8 +105,13 @@ for (const claim of targets) {
     }
     assert.match(readyLogs, new RegExp(ready), `Android runtime claim ${claim} did not become ready.`);
 
-    const probe = spawnSync('adb', ['shell', 'ping', '-c', '1', '-W', '2', probeDomain], { cwd: root, encoding: 'utf8' });
-    const probeOutput = `${probe.stdout ?? ''}${probe.stderr ?? ''}`;
+    const probeNames = claim === 'network-resolver'
+      ? [probeDomain]
+      : Array.from({ length: claim === 'pause-delay' ? 5 : 3 }, (_, index) => `probe-${index + 1}.${probeDomain}`);
+    const probeOutput = probeNames.map((domain) => {
+      const probe = spawnSync('adb', ['shell', 'ping', '-c', '1', '-W', '2', domain], { cwd: root, encoding: 'utf8' });
+      return `${probe.stdout ?? ''}${probe.stderr ?? ''}`;
+    }).join('\n');
     if (claim === 'network-resolver') {
       assert.doesNotMatch(probeOutput, /bad address|unknown host|name or service not known|temporary failure in name resolution/i, 'Allowed DNS request did not resolve.');
     } else {
@@ -114,7 +119,7 @@ for (const claim of targets) {
     }
     if (claim === 'pause-delay') {
       await new Promise((resolveExpiry) => setTimeout(resolveExpiry, 30_500));
-      spawnSync('adb', ['shell', 'ping', '-c', '1', '-W', '2', probeDomain], { cwd: root, encoding: 'utf8' });
+      spawnSync('adb', ['shell', 'ping', '-c', '1', '-W', '2', `after-expiry.${probeDomain}`], { cwd: root, encoding: 'utf8' });
     }
   } else {
     run('adb', ['logcat', '-c']);

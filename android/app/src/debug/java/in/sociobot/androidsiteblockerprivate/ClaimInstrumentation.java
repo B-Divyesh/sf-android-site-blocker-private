@@ -73,7 +73,7 @@ public final class ClaimInstrumentation extends Instrumentation {
         String domain = requiredProbeDomain();
         QuietwallVpnService.resetTestObservations();
         startVpn(context, Arrays.asList(domain), 0);
-        awaitExternalProbe("android-dns-filter", 10_000);
+        awaitExternalProbe("android-dns-filter", 20_000);
         require(QuietwallVpnService.testBlockedRequests > 0, "The external matching DNS request did not reach the filter.");
         require(QuietwallVpnService.testUpstreamRequests == 0, "A matching DNS request was sent upstream.");
     }
@@ -85,7 +85,7 @@ public final class ClaimInstrumentation extends Instrumentation {
         QuietwallVpnService.resetTestObservations();
         startVpn(context, Arrays.asList(domain), 0);
         long sentBefore = TrafficStats.getUidTxBytes(uid);
-        awaitExternalProbe("native-privacy", 10_000);
+        awaitExternalProbe("native-privacy", 20_000);
         long sentAfter = TrafficStats.getUidTxBytes(uid);
         if (sentBefore != TrafficStats.UNSUPPORTED && sentAfter != TrafficStats.UNSUPPORTED) {
             require(sentBefore == sentAfter, "Locally blocked request created app egress.");
@@ -152,7 +152,17 @@ public final class ClaimInstrumentation extends Instrumentation {
         while (System.currentTimeMillis() < deadline) {
             if (manager != null) for (Network network : manager.getAllNetworks()) {
                 NetworkCapabilities capabilities = manager.getNetworkCapabilities(network);
-                if (capabilities != null && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) return;
+                if (capabilities == null || !capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) continue;
+                LinkProperties properties = manager.getLinkProperties(network);
+                if (properties == null) continue;
+                for (InetAddress resolver : properties.getDnsServers()) {
+                    if ("10.99.0.2".equals(resolver.getHostAddress())) {
+                        // Android publishes the VPN transport before the resolver switch has
+                        // propagated to netd. Give that now-observed DNS path one scheduling turn.
+                        Thread.sleep(1000);
+                        return;
+                    }
+                }
             }
             Thread.sleep(100);
         }
