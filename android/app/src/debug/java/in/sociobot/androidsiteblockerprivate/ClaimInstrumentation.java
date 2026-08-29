@@ -15,11 +15,11 @@ import android.net.TrafficStats;
 import android.net.VpnService;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
+import android.util.Log;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.io.FileInputStream;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
@@ -70,21 +70,26 @@ public final class ClaimInstrumentation extends Instrumentation {
 
     private void blockedDnsClaim(Context context) throws Exception {
         ensureVpnConsent(context);
+        QuietwallVpnService.resetTestObservations();
         startVpn(context, Arrays.asList("example.com"), 0);
-        requireNotFound("example.com");
+        awaitExternalProbe("android-dns-filter", 10_000);
+        require(QuietwallVpnService.testBlockedRequests > 0, "The external matching DNS request did not reach the filter.");
+        require(QuietwallVpnService.testUpstreamRequests == 0, "A matching DNS request was sent upstream.");
     }
 
     private void privacyClaim(Context context) throws Exception {
         ensureVpnConsent(context);
         int uid = context.getApplicationInfo().uid;
-        long sentBefore = TrafficStats.getUidTxBytes(uid);
+        QuietwallVpnService.resetTestObservations();
         startVpn(context, Arrays.asList("example.org"), 0);
-        requireNotFound("example.org");
-        Thread.sleep(300);
+        long sentBefore = TrafficStats.getUidTxBytes(uid);
+        awaitExternalProbe("native-privacy", 10_000);
         long sentAfter = TrafficStats.getUidTxBytes(uid);
         if (sentBefore != TrafficStats.UNSUPPORTED && sentAfter != TrafficStats.UNSUPPORTED) {
             require(sentBefore == sentAfter, "Locally blocked request created app egress.");
         }
+        require(QuietwallVpnService.testBlockedRequests > 0, "The external blocked request was not observed.");
+        require(QuietwallVpnService.testUpstreamRequests == 0, "The blocked request reached an upstream resolver.");
         require(context.databaseList().length == 0, "A browsing database was created.");
         Map<String, ?> stored = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getAll();
         Set<String> expectedKeys = new HashSet<>(Arrays.asList("user_enabled", "rules", "schedule_enabled", "schedule_start", "schedule_end", "unlock_at"));
@@ -97,16 +102,20 @@ public final class ClaimInstrumentation extends Instrumentation {
         Set<String> resolvers = advertisedResolvers(context);
         require(!resolvers.isEmpty(), "No active-network resolver is available.");
         require(!resolvers.contains("10.99.0.2"), "Local VPN address appeared as an upstream resolver.");
+        QuietwallVpnService.resetTestObservations();
         startVpn(context, Arrays.asList("blocked.example"), 0);
-        require(InetAddress.getAllByName("iana.org").length > 0, "Allowed request did not resolve through the VPN.");
+        awaitExternalProbe("network-resolver", 10_000);
+        require(QuietwallVpnService.testUpstreamRequests > 0, "The external allowed request was not sent upstream.");
+        require(QuietwallVpnService.testLastResolver != null && resolvers.contains(QuietwallVpnService.testLastResolver), "Allowed request did not use an active non-VPN resolver.");
     }
 
     private void pauseClaim(Context context) throws Exception {
         ensureVpnConsent(context);
-        startVpn(context, Arrays.asList("example.net"), System.currentTimeMillis() + 2500);
-        requireNotFound("example.net");
+        QuietwallVpnService.resetTestObservations();
+        startVpn(context, Arrays.asList("example.net"), System.currentTimeMillis() + 8_000);
         require(RuleStore.isUserEnabled(context), "Filtering stopped before expiry.");
-        Thread.sleep(2750);
+        awaitExternalProbe("pause-delay", 12_000);
+        require(QuietwallVpnService.testBlockedRequests > 0, "The request was not blocked before expiry.");
         long deadline = System.currentTimeMillis() + 3000;
         while (RuleStore.isUserEnabled(context) && System.currentTimeMillis() < deadline) Thread.sleep(100);
         require(!RuleStore.isUserEnabled(context), "Filtering stayed enabled after expiry.");
@@ -144,13 +153,9 @@ public final class ClaimInstrumentation extends Instrumentation {
         throw new AssertionError("Android did not expose the Quietwall VPN network.");
     }
 
-    private static void requireNotFound(String domain) throws Exception {
-        try {
-            InetAddress.getAllByName(domain);
-            throw new AssertionError("Matching request resolved instead of receiving a not-found response.");
-        } catch (UnknownHostException expected) {
-            // Android's resolver reports the local NXDOMAIN as an unknown host to the calling app.
-        }
+    private static void awaitExternalProbe(String id, long milliseconds) throws Exception {
+        Log.i("QuietwallClaim", "READY:" + id);
+        Thread.sleep(milliseconds);
     }
 
     private void ensureVpnConsent(Context context) throws Exception {
