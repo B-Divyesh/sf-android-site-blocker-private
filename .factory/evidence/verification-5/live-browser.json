@@ -1,0 +1,403 @@
+{
+  "checkedAt": "2026-09-06T00:56:46.650Z",
+  "base": "https://android-site-blocker-private.sociobot.in",
+  "desktop": {
+    "title": "Quietwall — block websites on Android",
+    "lang": "en",
+    "h1": [
+      "Block websites across your Android device"
+    ],
+    "audience": "For Android users who want private, device-wide blocking without an account or subscription.",
+    "actions": [
+      {
+        "text": "Try it with sample data",
+        "href": "/?demo=1",
+        "box": {
+          "x": 130,
+          "y": 736.328125,
+          "width": 274.6875,
+          "height": 52,
+          "bottom": 788.328125
+        }
+      },
+      {
+        "text": "Download the Android app",
+        "href": "/downloads/quietwall.apk",
+        "box": {
+          "x": 424.6875,
+          "y": 736.328125,
+          "width": 274.6875,
+          "height": 52,
+          "bottom": 788.328125
+        }
+      },
+      {
+        "text": "Download APK checksum",
+        "href": "/downloads/quietwall.apk.sha256",
+        "box": {
+          "x": 424.6875,
+          "y": 815.171875,
+          "width": 163.890625,
+          "height": 44,
+          "bottom": 859.171875
+        }
+      }
+    ],
+    "facts": [
+      "Your block list stays on this device.",
+      "Works offline after the first visit.",
+      "Free to use. No account."
+    ],
+    "scrollY": 0,
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "main": true,
+    "header": true,
+    "nav": true,
+    "footer": true
+  },
+  "mobile": {
+    "title": "Quietwall — block websites on Android",
+    "lang": "en",
+    "h1": [
+      "Block websites across your Android device"
+    ],
+    "audience": "For Android users who want private, device-wide blocking without an account or subscription.",
+    "actions": [
+      {
+        "text": "Try it with sample data",
+        "href": "/?demo=1",
+        "box": {
+          "x": 16,
+          "y": 426.421875,
+          "width": 358,
+          "height": 52,
+          "bottom": 478.421875
+        }
+      },
+      {
+        "text": "Download the Android app",
+        "href": "/downloads/quietwall.apk",
+        "box": {
+          "x": 16,
+          "y": 538.109375,
+          "width": 358,
+          "height": 52,
+          "bottom": 590.109375
+        }
+      },
+      {
+        "text": "Download APK checksum",
+        "href": "/downloads/quietwall.apk.sha256",
+        "box": {
+          "x": 16,
+          "y": 616.953125,
+          "width": 163.890625,
+          "height": 44,
+          "bottom": 660.953125
+        }
+      }
+    ],
+    "facts": [
+      "Your block list stays on this device.",
+      "Works offline after the first visit.",
+      "Free to use. No account."
+    ],
+    "scrollY": 0,
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "main": true,
+    "header": true,
+    "nav": true,
+    "footer": true
+  },
+  "flows": {
+    "demo": {
+      "url": "https://android-site-blocker-private.sociobot.in/?demo=1",
+      "title": "Demo — Quietwall",
+      "focus": "Try a sample Android block list",
+      "banner": "Demo — sample data, nothing is saved to your real listChanges use isolated demo storage.Reset demoStart for real",
+      "bannerBox": {
+        "top": 0,
+        "bottom": 128.421875
+      },
+      "sample": [
+        "■news.example.comEnabled",
+        "■*.social.exampleEnabled",
+        "■video.exampleEnabled",
+        "□forum.examplePaused"
+      ],
+      "summary": "Sample readyFocus hours 21:30–07:00 · Pause delay 15 minutesFree to use. No account.",
+      "snapshotBottom": 556.609375,
+      "viewportHeight": 844,
+      "databases": [
+        "quietwall-demo",
+        "quietwall-local"
+      ],
+      "bannerAfterScroll": {
+        "top": -1203,
+        "bottom": -1074.578125,
+        "visible": false
+      },
+      "directDemoDatabases": [
+        "quietwall-demo"
+      ]
+    },
+    "normalInvalidBoundaryRecovery": {
+      "normalized": "example.com",
+      "duplicate": "example.com is already in your block list.",
+      "invalid": "Use a valid domain, such as example.com or *.example.com.",
+      "clamped": "1440",
+      "countAfterCancel": 1,
+      "restored": true,
+      "tempAfterReset": 0,
+      "bannerAfterReset": true,
+      "focus": [
+        {
+          "id": "power-button",
+          "tag": "BUTTON",
+          "label": "Save block list",
+          "visible": true,
+          "focusVisible": true,
+          "outline": "3px"
+        },
+        {
+          "id": "domain",
+          "tag": "INPUT",
+          "label": "",
+          "visible": true,
+          "focusVisible": true,
+          "outline": "3px"
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "label": "Add domain",
+          "visible": true,
+          "focusVisible": true,
+          "outline": "3px"
+        },
+        {
+          "id": "import-button",
+          "tag": "BUTTON",
+          "label": "Import block list",
+          "visible": true,
+          "focusVisible": true,
+          "outline": "3px"
+        },
+        {
+          "id": "export-button",
+          "tag": "BUTTON",
+          "label": "Export block list",
+          "visible": true,
+          "focusVisible": true,
+          "outline": "3px"
+        },
+        {
+          "id": "",
+          "tag": "INPUT",
+          "label": "",
+          "visible": true,
+          "focusVisible": true,
+          "outline": "3px"
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "label": "Remove news.example.com",
+          "visible": true,
+          "focusVisible": true,
+          "outline": "3px"
+        },
+        {
+          "id": "",
+          "tag": "INPUT",
+          "label": "",
+          "visible": true,
+          "focusVisible": true,
+          "outline": "3px"
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "label": "Remove *.social.example",
+          "visible": true,
+          "focusVisible": true,
+          "outline": "3px"
+        },
+        {
+          "id": "",
+          "tag": "INPUT",
+          "label": "",
+          "visible": true,
+          "focusVisible": true,
+          "outline": "3px"
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "label": "Remove video.example",
+          "visible": true,
+          "focusVisible": true,
+          "outline": "3px"
+        },
+        {
+          "id": "",
+          "tag": "INPUT",
+          "label": "",
+          "visible": true,
+          "focusVisible": true,
+          "outline": "3px"
+        },
+        {
+          "id": "",
+          "tag": "BUTTON",
+          "label": "Remove forum.example",
+          "visible": true,
+          "focusVisible": true,
+          "outline": "3px"
+        },
+        {
+          "id": "",
+          "tag": "SUMMARY",
+          "label": "⌛Focus controlsOPTIONAL",
+          "visible": true,
+          "focusVisible": true,
+          "outline": "3px"
+        }
+      ],
+      "reduced": {
+        "transition": "1e-05s",
+        "animation": "1e-05s"
+      }
+    },
+    "offline": {
+      "title": "Demo — Quietwall",
+      "heading": "Try a sample Android block list",
+      "sampleVisible": true,
+      "controller": true
+    }
+  },
+  "routes": [
+    {
+      "path": "/",
+      "status": 200,
+      "title": "Quietwall — block websites on Android",
+      "h1": [
+        "Block websites across your Android device"
+      ],
+      "h1Count": 1,
+      "lang": "en",
+      "canonical": "https://android-site-blocker-private.sociobot.in/",
+      "consoleErrors": [],
+      "main": 1,
+      "skip": 1
+    },
+    {
+      "path": "/?demo=1",
+      "status": 200,
+      "title": "Demo — Quietwall",
+      "h1": [
+        "Try a sample Android block list"
+      ],
+      "h1Count": 1,
+      "lang": "en",
+      "canonical": "https://android-site-blocker-private.sociobot.in/?demo=1",
+      "consoleErrors": [],
+      "main": 1,
+      "skip": 1
+    },
+    {
+      "path": "/demo/",
+      "status": 200,
+      "title": "Demo — Quietwall",
+      "h1": [
+        "Try a sample Android block list"
+      ],
+      "h1Count": 1,
+      "lang": "en",
+      "canonical": "https://android-site-blocker-private.sociobot.in/?demo=1",
+      "consoleErrors": [],
+      "main": 1,
+      "skip": 1
+    },
+    {
+      "path": "/privacy/",
+      "status": 200,
+      "title": "Privacy — Quietwall",
+      "h1": [
+        "How Quietwall handles your data"
+      ],
+      "h1Count": 1,
+      "lang": "en",
+      "canonical": "https://android-site-blocker-private.sociobot.in/privacy/",
+      "consoleErrors": [],
+      "main": 1,
+      "skip": 1
+    },
+    {
+      "path": "/terms/",
+      "status": 200,
+      "title": "Terms — Quietwall",
+      "h1": [
+        "Terms for using Quietwall"
+      ],
+      "h1Count": 1,
+      "lang": "en",
+      "canonical": "https://android-site-blocker-private.sociobot.in/terms/",
+      "consoleErrors": [],
+      "main": 1,
+      "skip": 1
+    },
+    {
+      "path": "/offline.html",
+      "status": 200,
+      "title": "Offline — Quietwall",
+      "h1": [
+        "Quietwall is offline"
+      ],
+      "h1Count": 1,
+      "lang": "en",
+      "canonical": "https://android-site-blocker-private.sociobot.in/offline.html",
+      "consoleErrors": [],
+      "main": 1,
+      "skip": 1
+    },
+    {
+      "path": "/does-not-exist",
+      "status": 404,
+      "title": "Page not found — Quietwall",
+      "h1": [
+        "Page not found"
+      ],
+      "h1Count": 1,
+      "lang": "en",
+      "canonical": "https://android-site-blocker-private.sociobot.in/404.html",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "main": 1,
+      "skip": 1
+    }
+  ],
+  "origins": [
+    {
+      "name": "desktop",
+      "origin": "https://android-site-blocker-private.sociobot.in"
+    },
+    {
+      "name": "mobile",
+      "origin": "https://android-site-blocker-private.sociobot.in"
+    },
+    {
+      "name": "flow",
+      "origin": "https://android-site-blocker-private.sociobot.in"
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": []
+}
