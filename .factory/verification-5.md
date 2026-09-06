@@ -14,7 +14,7 @@
 
 The implementation SHA is the last commit that changed a shipped product artifact: the public APK. Later commits through `7be7e85` change tests, CI, claims records, and reports. The generated web shell at `7be7e85` is byte-for-byte equal to the live shell.
 
-**Finding count:** 5. **Untested claim count:** 5. These are verification gaps, not observed product failures. Three fresh API 35 workers failed before the Android claim registry started.
+**Finding count:** 5. **Untested claim count:** 5. These are verification gaps, not observed product failures. Three fresh API 35 workers failed before the registry started. A fourth reached the first Android command, but its network preflight failed before it observed the claimed behavior.
 
 ## First screen before scrolling
 
@@ -46,7 +46,7 @@ The production bundles are 32,467 bytes of JavaScript (11,728 bytes gzip) and 17
 
 ## Declared claims
 
-Every non-Android command below was run exactly as declared in `.factory/claims.json` from the clean checkout after the clean production build. Those ten commands passed. Three clean API 35 workflow attempts at `7be7e85` failed while the emulator runner was booting, before any Android claim command started. A successful older run is useful historical evidence but does not satisfy this work order's fresh-evidence requirement.
+Every non-Android command below was run exactly as declared in `.factory/claims.json` from the clean checkout after the clean production build. Those ten commands passed locally and again in the fourth API 35 workflow. Three earlier clean API 35 attempts failed while the emulator runner was booting. The fourth invoked `network-resolver`, but its 180-second preflight ended with `ping: unknown host` before the claim behavior was exercised. Fail-fast stopped the remaining four commands. A successful older run is useful historical evidence but does not satisfy this work order's fresh-evidence requirement.
 
 | Claim | Result | Observable evidence |
 | --- | --- | --- |
@@ -60,7 +60,7 @@ Every non-Android command below was run exactly as declared in `.factory/claims.
 | `domain-matching` | PASS | Apex, nested subdomain, wildcard, excluded apex, and lookalike cases passed. |
 | `focus-hours` | PASS | Daytime, overnight, boundary, and equal-time all-day cases passed. |
 | `web-config-only` | PASS | The web UI says it saves a list and does not claim to block traffic. |
-| `network-resolver` | UNTESTED | API 35 runner failed before the command started. |
+| `network-resolver` | FAIL / UNTESTED | The exact command ran, but the clean emulator exposed no underlying DNS service, so the behavior was not observed. |
 | `android-dns-filter` | UNTESTED | API 35 runner failed before the command started. |
 | `native-privacy` | UNTESTED | API 35 runner failed before the command started. |
 | `filter-boundary` | UNTESTED | API 35 runner failed before the command started. |
@@ -112,7 +112,7 @@ All earlier reports were read, including low-severity notes.
 | Verification 2 cache policy, anti-framing/CSP, and manifest MIME | CLOSED — live headers and MIME now match the required values. |
 | Verification 3 broken service-worker install | CLOSED — live control and offline reload pass; deployment-control files are absent from the precache. |
 | Verification 3 native coverage, Lighthouse variability, and inaccurate “no network calls” text | PARTIAL — installed-APK commands replace source-only checks, Lighthouse is 100, and copy names allowed DNS traffic. Fresh execution of those Android commands remains open as V5-1–V5-5. |
-| Verification 4 Android device coverage gap | OPEN — three fresh API 35 attempts failed before claim execution, so the five installed-APK claims remain untested in this round. |
+| Verification 4 Android device coverage gap | OPEN — three fresh API 35 attempts failed before claim execution; a fourth failed the resolver preflight. The five installed-APK behaviors remain untested in this round. |
 | Review 2 F-2-1 | CLOSED — the demo sample summary ends at 556.61 CSS px in the first 390 × 844 viewport. |
 | Review 2 F-2-2 | NOT REPROVEN — the harness still targets the checksum-verified public APK, but no fresh API 35 attempt reached it. |
 | Review 2 F-2-3 | CLOSED — the unlisted rule-transfer sentence is absent. |
@@ -128,11 +128,13 @@ The old handoff cited workflow `33241895723` as successful even though its overa
 
 ## Fresh Android runs
 
-All three runs used commit `7be7e85` and completed the clean build job successfully. Their device jobs failed inside `reactivecircus/android-emulator-runner` before `node scripts/run-claim-registry.mjs` started:
+The first three runs used commit `7be7e85` and completed the clean build job successfully. Their device jobs failed inside `reactivecircus/android-emulator-runner` before `node scripts/run-claim-registry.mjs` started:
 
 - [Run 34003372436](https://github.com/B-Divyesh/sf-android-site-blocker-private/actions/runs/34003372436): the emulator reported boot complete, then the wrapper's input key event failed with `Broken pipe (32)`.
 - [Run 34004101437](https://github.com/B-Divyesh/sf-android-site-blocker-private/actions/runs/34004101437): the same wrapper input and overlay setup failed with broken pipes.
 - [Run 34006155513](https://github.com/B-Divyesh/sf-android-site-blocker-private/actions/runs/34006155513): the wrapper timed out waiting for the emulator to boot.
+
+A documentation-only push then ran the unchanged implementation and test harness at [run 34007022141](https://github.com/B-Divyesh/sf-android-site-blocker-private/actions/runs/34007022141). Its build job passed. Its device job booted, passed the ten non-Android commands, installed the checksum-verified APK, and invoked `network-resolver`. After 180 seconds, the preflight still returned `ping: unknown host dns-ready-….quietwall.test`; the command failed with `The clean emulator did not expose its underlying DNS service before the resolver claim.` The claim behavior was not observed, and fail-fast skipped the other four Android commands.
 
 The last known successful installed-APK run, [33243763594](https://github.com/B-Divyesh/sf-android-site-blocker-private/actions/runs/33243763594), used the same published APK at documentation/test commit `73f374e`. It does not replace fresh evidence for this work order.
 
@@ -140,7 +142,7 @@ The last known successful installed-APK run, [33243763594](https://github.com/B-
 
 | ID | Severity | Finding | Required evidence to close |
 | --- | --- | --- | --- |
-| V5-1 | High | `network-resolver` is untested in this round. | Run its exact command on a clean, booted API 35 device and observe an allowed reply through the active network resolver. |
+| V5-1 | High | The exact `network-resolver` command fails at its emulator network preflight, leaving the claim untested. | Run it on a clean API 35 device with working underlying DNS and observe an allowed reply through the active network resolver. |
 | V5-2 | High | `android-dns-filter` is untested in this round. | Run its exact command against the published APK and observe the local not-found result. |
 | V5-3 | Medium | `native-privacy` is untested in this round. | Run its exact command and inspect app egress and private runtime storage. |
 | V5-4 | Medium | `filter-boundary` is untested in this round. | Run its exact command and inspect installed package authority and permissions. |

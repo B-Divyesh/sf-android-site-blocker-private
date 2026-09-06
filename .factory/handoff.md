@@ -26,7 +26,9 @@ Three clean API 35 attempts failed inside the emulator wrapper before `node scri
 - <https://github.com/B-Divyesh/sf-android-site-blocker-private/actions/runs/34004101437> — wrapper input and overlay calls failed with broken pipes.
 - <https://github.com/B-Divyesh/sf-android-site-blocker-private/actions/runs/34006155513> — emulator boot timed out.
 
-The build job passed in each run, but `network-resolver`, `android-dns-filter`, `native-privacy`, `filter-boundary`, and `pause-delay` have no fresh result. The last known successful installed-APK run is `33243763594` at test commit `73f374e`; it is historical evidence only.
+A fourth run from the documentation-only report push reached the registry: <https://github.com/B-Divyesh/sf-android-site-blocker-private/actions/runs/34007022141>. It passed all ten non-Android commands, installed the checksum-verified APK, then failed `network-resolver` because the emulator exposed no underlying DNS service during the 180-second preflight. The other four Android commands were skipped by fail-fast.
+
+The five Android behaviors therefore have no fresh result. The last known successful installed-APK run is `33243763594` at test commit `73f374e`; it is historical evidence only.
 
 ## Evidence
 
